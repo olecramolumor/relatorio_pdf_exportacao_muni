@@ -1,5 +1,5 @@
 GERAL
-    # relatorio_pdf_exportacao_muni
+    #relatorio_pdf_exportacao_muni
     versão: 1.0
     Descrição: Executavel para geração de .pdf sobre dados de Exportação Municipal de Rondônia
 
@@ -9,7 +9,7 @@ ESTUTURA DO .env:
     DB_NAME=nome_do_banco
     DB_USER=seu_usuario
     DB_PASSWORD=sua_senha
-    DB_PORT=5432
+    DB_PORT=123456789
     DB_TAB=nome_da_tabela
 
     # Configurações de E-mail (Envio de Logs)
