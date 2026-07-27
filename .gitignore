@@ -1,0 +1,9 @@
+.env
+*.rar
+*.zip
+*.pdf
+*.jpeg
+*.png
+__pycache__
+Auxiliar
+Arquivos
