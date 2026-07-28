@@ -6,6 +6,7 @@ import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
 from tkinter import filedialog
+
 ###src###
 import relatorio_csv
 
@@ -65,7 +66,6 @@ def janela_salvar(nome_padrao):
 
 #In[]:
 #CLASSE DA JANELA
-# CLASSE DA JANELA
 class AppSelecaoCSV(ctk.CTk):
     def __init__(self, arq_cam):
         super().__init__()
@@ -79,7 +79,6 @@ class AppSelecaoCSV(ctk.CTk):
         self.geometry("420x350")
         self.resizable(False, False)
 
-        # OPÇÕES DO .CSV - CORREÇÃO AQUI: Captura os 3 valores retornados por dados_csv()
         self.paises, self.anos, self.df = dados_csv(self.caminho_csv)
 
         # LAYOUT DE INTERFACE
@@ -150,7 +149,7 @@ class AppSelecaoCSV(ctk.CTk):
         #QUEBRA A JANELA
         self.destroy()
 
-
+#In[]
 def main():
     #DADOS DO CSV
     arq_cam = relatorio_csv.main()
@@ -176,3 +175,4 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         logger.error(f"Erro no main(): {e}")
+
