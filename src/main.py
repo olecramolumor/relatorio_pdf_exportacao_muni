@@ -22,9 +22,7 @@ def main():
 
     #CRIAR >csv DE CONSULTA
     #FEITO NO CÓDIGO DO relatorio_Janela_Main()
-
     #ABRIR JANELA DE BUSCA
-    
     pais, ano = relatorio_janela_main.main()
 
     #FAZER A BUSCA DE DADOS
@@ -38,8 +36,6 @@ def main():
     tempo_fim = time.perf_counter()
     tempo_total = tempo_fim - tempo_ini
     logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
-
-
 #In[]:
 if __name__ == "__main__":
     main()

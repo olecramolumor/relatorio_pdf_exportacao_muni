@@ -130,10 +130,12 @@ def desenhar_cabecalho_rodape(pais,ano,canvas,doc):
     canvas.setFillColor(colors.HexColor("#1A365D"))
     canvas.drawCentredString(centro_x, 50, "Fonte dos dados:")
 
-    #LINK GEO
-    texto_linha01 = "Geointeligência de Dados Econômicos"
-    canvas.drawCentredString(centro_x, 38, texto_linha01 )
+    #TEXTO DA FONTE    
+    texto_linha01 = "Comex Stat"
+    texto_linha02 = "Geointeligência de Dados Econômicos do Estado de Rondônia"
 
+    #FONTE 01
+    canvas.drawCentredString(centro_x, 38, texto_linha01 )    
     largura_texto1 = canvas.stringWidth(texto_linha01, 'Helvetica-Oblique', 8)
     canvas.linkURL(
         url="https://geo.sedec.ro.gov.br/?page=Com%C3%A9rcio-Exterior&views=Com%C3%A9rcio-Exterior---Munic%C3%ADpio", 
@@ -141,10 +143,8 @@ def desenhar_cabecalho_rodape(pais,ano,canvas,doc):
         thickness=0  # Mantém o retângulo do link invisível
     )
 
-    #LINK COMEXSTAT
-    texto_linha02 = "Comex Stat"
+    #FONTE 02    
     canvas.drawCentredString(centro_x, 26, texto_linha02)
-
     largura_texto2 = canvas.stringWidth(texto_linha02, 'Helvetica-Oblique', 8)
     canvas.linkURL(
         url="https://comexstat.mdic.gov.br/pt/home", 
