@@ -1,7 +1,5 @@
 #In[]:
-import os
 import logging
-import pandas as pd
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
@@ -17,28 +15,224 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s - %(f
 logger = logging.getLogger(__name__)
 
 #In[]:
+#CLASSE DA JANELA
+class AppSelecaoCSV(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.ano_selecionado = None
+        self.municipio_selecionado = None
+        self.pais_selecionado = None
+        self.produto_selecionado = None
+        self.tipo_relatorio = None
+        self.checkbox_valor = True  # valor default do novo campo
 
-#Janela de dialogos para seleção do país:
-def dados_csv(arq_cam):
-    try:
-        if not os.path.exists(arq_cam):
-            messagebox.showerror("Erro", f"Arquivo CSV não encontrado em:\n{arq_cam}")
-            return [], []
+        # CONFIG DA JANELA
+        self.title("Filtro Comex Stat - Rondônia")
+        self.geometry("460x420")
+        self.resizable(False, False)
 
-        df = pd.read_csv(arq_cam, sep=';', encoding='utf-8-sig')
+        # LEITURA DOS DADOS
+        ### ARRUMAR AQUI ####
+        self.paises, self.municipios, self.anos, self.produtos= relatorio_csv.main()
+        
 
-        #DADOS DE PAIS
-        paises = sorted(df['pais'].dropna().astype(str).str.strip().unique().tolist())
+        # CRIAÇÃO DA ESTRUTURA DE ABAS
+        self.tabview = ctk.CTkTabview(self, width=420, height=340)
+        self.tabview.pack(padx=20, pady=10)
 
-        #DADOS DE ANO
-        anos = sorted(df['ano'].dropna().astype(int).unique().tolist(), reverse=True)
-        anos_str = [str(a) for a in anos]
+        # Adicionando as abas para cada parâmetro
+        self.tabview.add("Apenas Ano")
+        self.tabview.add("Município e Ano")
+        self.tabview.add("País e Ano")
+        self.tabview.add("Produto e Ano")
 
-        return paises, anos_str,df
+        # CHAMADA DAS FUNÇÕES DE CONSTRUÇÃO DE CADA WIDGET
+        self.criar_aba_apenas_ano()
+        self.criar_aba_municipio_ano()
+        self.criar_aba_pais_ano()
+        self.criar_aba_produto_ano()
 
-    except Exception as e:
-        logger.error(f"Erro na função janela_selecao(): {e}")
-        raise
+        # VARIÁVEL E WIDGET DO CHECKBOX (RODAPÉ)
+        self.var_checkbox = ctk.BooleanVar(value=True)
+        self.checkbox_opcao = ctk.CTkCheckBox(
+            self,
+            text="Cabeçalho da SEDEC",
+            variable=self.var_checkbox,
+            onvalue=True,
+            offvalue=False
+        )
+        self.checkbox_opcao.pack(pady=(0, 5))
+
+        # BOTÃO CONFIRMAR GERAL (RODAPÉ)
+        btn_confirmar = ctk.CTkButton(
+            self, 
+            text="Processar / Gerar Relatório", 
+            command=self.confirmar_selecao,
+            height=38,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        btn_confirmar.pack(pady=(0, 15))
+        
+    #BUSCA POR ANO
+    def criar_aba_apenas_ano(self):
+        tab = self.tabview.tab("Apenas Ano")
+
+        lbl_titulo = ctk.CTkLabel(tab, text="Relatório Geral Por Ano", font=ctk.CTkFont(size=15, weight="bold"))
+        lbl_titulo.pack(pady=(20, 15))
+
+        lbl_ano = ctk.CTkLabel(tab, text="Selecione o Ano do Relatório:", font=ctk.CTkFont(size=13))
+        lbl_ano.pack(anchor="w", padx=20, pady=(5, 2))
+
+        self.combo_ano_aba1 = ctk.CTkComboBox(
+            tab, 
+            values=self.anos if self.anos else ["Nenhum ano encontrado"],
+            width=340
+        )
+        self.combo_ano_aba1.pack(padx=20, pady=(0, 15))
+
+    #BUSCA POR MUNICÍPIO
+    def criar_aba_municipio_ano(self):
+        tab = self.tabview.tab("Município e Ano")
+
+        lbl_titulo = ctk.CTkLabel(tab, text="Relatório por Município e Ano", font=ctk.CTkFont(size=15, weight="bold"))
+        lbl_titulo.pack(pady=(10, 10))
+
+        lbl_muni = ctk.CTkLabel(tab, text="Selecione o Município:", font=ctk.CTkFont(size=12))
+        lbl_muni.pack(anchor='w', padx=20, pady=(2, 2))
+
+        self.combo_muni_aba2 = ctk.CTkComboBox(
+            tab,
+            values=self.municipios if self.municipios else ["Nenhum Município Encontrado"],
+            width=340        
+        )
+        self.combo_muni_aba2.pack(padx=20, pady=(0, 10))
+
+        lbl_ano = ctk.CTkLabel(tab, text="Selecione o Ano:", font=ctk.CTkFont(size=12))
+        lbl_ano.pack(anchor="w", padx=20, pady=(2, 2))
+
+        self.combo_ano_aba2 = ctk.CTkComboBox(
+            tab, 
+            values=self.anos if self.anos else ["Nenhum ano encontrado"],
+            width=340
+        )
+        self.combo_ano_aba2.pack(padx=20, pady=(0, 10))
+
+    #BUSCA POR PAIS
+    def criar_aba_pais_ano(self):
+        tab = self.tabview.tab("País e Ano")
+        
+        lbl_titulo = ctk.CTkLabel(tab, text="Relatório por País e Ano", font=ctk.CTkFont(size=15, weight="bold"))
+        lbl_titulo.pack(pady=(10, 10))
+
+        lbl_pais = ctk.CTkLabel(tab, text="Selecione o País:", font=ctk.CTkFont(size=12))
+        lbl_pais.pack(anchor='w', padx=20, pady=(2, 2))
+
+        self.combo_pais_aba3 = ctk.CTkComboBox(
+            tab,
+            values=self.paises if self.paises else ["Nenhum País Encontrado"],
+            width=340        
+        )
+        self.combo_pais_aba3.pack(padx=20, pady=(0, 10))
+
+        lbl_ano = ctk.CTkLabel(tab, text="Selecione o Ano:", font=ctk.CTkFont(size=12))
+        lbl_ano.pack(anchor="w", padx=20, pady=(2, 2))
+
+        self.combo_ano_aba3 = ctk.CTkComboBox(
+            tab, 
+            values=self.anos if self.anos else ["Nenhum ano encontrado"],
+            width=340
+        )
+        self.combo_ano_aba3.pack(padx=20, pady=(0, 10))
+
+    #BUSCA POR PAIS
+    def criar_aba_produto_ano(self):
+        tab = self.tabview.tab("Produto e Ano")
+                
+        lbl_titulo = ctk.CTkLabel(tab, text="Relatório por Produto e Ano", font=ctk.CTkFont(size=15, weight="bold"))
+        lbl_titulo.pack(pady=(10, 10))
+
+        lbl_produto = ctk.CTkLabel(tab, text="Selecione o Produto:", font=ctk.CTkFont(size=12))
+        lbl_produto.pack(anchor='w', padx=20, pady=(2, 2))
+
+        self.combo_produto_aba4 = ctk.CTkComboBox(
+            tab,
+            values=self.produtos if self.produtos else ["Nenhum Produto Encontrado"],
+            width=340        
+        )
+        self.combo_produto_aba4.pack(padx=20, pady=(0, 10))
+
+        lbl_ano = ctk.CTkLabel(tab, text="Selecione o Ano:", font=ctk.CTkFont(size=12))
+        lbl_ano.pack(anchor="w", padx=20, pady=(2, 2))
+
+        self.combo_ano_aba4 = ctk.CTkComboBox(
+            tab, 
+            values=self.anos if self.anos else ["Nenhum ano encontrado"],
+            width=340
+        )
+        self.combo_ano_aba4.pack(padx=20, pady=(0, 10))
+
+    def confirmar_selecao(self):
+        aba_ativa = self.tabview.get()
+
+        # LEITURA DO VALOR DO CHECKBOX (True/False)
+        self.checkbox_valor = self.var_checkbox.get()
+
+        if aba_ativa == "Apenas Ano":
+            ano = self.combo_ano_aba1.get()
+
+            if not ano or "Nenhum" in ano:
+                messagebox.showwarning("Atenção", "Selecione um Ano válido.")
+                return
+
+            self.tipo_relatorio = "apenas_ano"
+            self.ano_selecionado = int(ano)
+
+        elif aba_ativa == "Município e Ano":
+            muni = self.combo_muni_aba2.get()
+            ano = self.combo_ano_aba2.get()
+
+            if not muni or "Nenhum" in muni:
+                messagebox.showwarning("Atenção", "Selecione um Município válido.")
+                return
+            if not ano or "Nenhum" in ano:
+                messagebox.showwarning("Atenção", "Selecione um Ano válido.")
+                return
+
+            self.tipo_relatorio = "municipio_ano"
+            self.municipio_selecionado = muni
+            self.ano_selecionado = int(ano)
+
+        elif aba_ativa == "País e Ano":
+            pais = self.combo_pais_aba3.get()
+            ano = self.combo_ano_aba3.get()
+
+            if not pais or "Nenhum" in pais:
+                messagebox.showwarning("Atenção", "Selecione um País válido.")
+                return
+            if not ano or "Nenhum" in ano:
+                messagebox.showwarning("Atenção", "Selecione um Ano válido.")
+                return
+
+            self.tipo_relatorio = "pais_ano"
+            self.pais_selecionado = pais
+            self.ano_selecionado = int(ano)
+
+        elif aba_ativa == "Produto e Ano":
+            produto = self.combo_produto_aba4.get()
+            ano = self.combo_ano_aba4.get()
+
+            if not produto or "Nenhum" in produto:
+                messagebox.showwarning("Atenção", "Selecione um País válido.")
+                return
+            if not ano or "Nenhum" in ano:
+                messagebox.showwarning("Atenção", "Selecione um Ano válido.")
+                return
+
+            self.tipo_relatorio = "produto_ano"
+            self.produto_selecionado = produto
+            self.ano_selecionado = int(ano)
+
+        self.destroy()
 
 #In[]:
 #Janela de dialogos para salvar
@@ -64,115 +258,28 @@ def janela_salvar(nome_padrao):
         logger.error(f"Erro na função janela_salvar(): {e}")
         raise
 
-#In[]:
-#CLASSE DA JANELA
-class AppSelecaoCSV(ctk.CTk):
-    def __init__(self, arq_cam):
-        super().__init__()
-        self.pais_selecionado = None
-        self.ano_selecionado = None
-
-        self.caminho_csv = arq_cam
-
-        # CONFIG DA JANELA
-        self.title("Filtro de Relatório Comex Stat Rondônia - Municipal")
-        self.geometry("420x350")
-        self.resizable(False, False)
-
-        self.paises, self.anos, self.df = dados_csv(self.caminho_csv)
-
-        # LAYOUT DE INTERFACE
-        self.criar_widget()
-
-    def criar_widget(self):
-        # TÍTULO / CABEÇALHO
-        lbl_titulo = ctk.CTkLabel(
-            self, 
-            text="Seleção de Parâmetros", 
-            font=ctk.CTkFont(size=20, weight="bold")
-        )
-        lbl_titulo.pack(pady=(25, 20))
-
-        # PAÍS (Correção no nome da classe: CTkLabel)
-        lbl_pais = ctk.CTkLabel(self, text="Selecione o País:", font=ctk.CTkFont(size=13))
-        lbl_pais.pack(anchor='w', padx=40, pady=(5, 2))
-
-        self.combo_pais = ctk.CTkComboBox(
-            self,
-            values=self.paises if self.paises else ["Nenhum País Encontrado"],
-            width=340        
-        )
-        self.combo_pais.pack(padx=40, pady=(0, 15))
-
-        # ANO
-        lbl_ano = ctk.CTkLabel(self, text="Selecione o Ano:", font=ctk.CTkFont(size=13))
-        lbl_ano.pack(anchor="w", padx=40, pady=(5, 2))
-
-        self.combo_ano = ctk.CTkComboBox(
-            self, 
-            values=self.anos if self.anos else ["Nenhum ano encontrado"],
-            width=340
-        )
-        self.combo_ano.pack(padx=40, pady=(0, 25))
-
-        # BOTÃO CONFIRMAR
-        btn_confirmar = ctk.CTkButton(
-            self, 
-            text="Processar / Gerar Relatório", 
-            command=self.confirmar_selecao,
-            height=38,
-            font=ctk.CTkFont(size=14, weight="bold")
-        )
-        btn_confirmar.pack(padx=40, pady=10)
-
-    def confirmar_selecao(self):
-        pais = self.combo_pais.get()
-        ano = self.combo_ano.get()
-
-        if not pais or pais == "Nenhum País Encontrado":
-            messagebox.showwarning("Atenção", "Por favor, selecione um país válido.")
-            return
-
-        if not ano or ano == "Nenhum ano encontrado":
-            messagebox.showwarning("Atenção", "Por favor, selecione um ano válido.")
-            return
-
-        messagebox.showinfo(
-            "Seleção Confirmada", 
-            f"País: {pais}\nAno: {ano}"
-        )
-
-        #COLETANDO DADOS
-        self.pais_selecionado = pais
-        self.ano_selecionado = int(ano)
-
-        #QUEBRA A JANELA
-        self.destroy()
-
 #In[]
 def main():
-    #DADOS DO CSV
-    arq_cam = relatorio_csv.main()
-
-    #ABRIR INSTANCIA E JANELA
-    app = AppSelecaoCSV(arq_cam)
-    app.mainloop()
-
-    #variavel de pais e ano
-    pais = app.pais_selecionado
-    ano = app.ano_selecionado
-
-    if pais and ano:
-        logger.info(f"Parâmetros selecionados com sucesso -> País: {pais} | Ano: {ano}")
-
-    else:
-        logger.info("Seleção Cancelada Pelo Usuário")    
-
-    return pais, ano
-
-if __name__ == "__main__":
     try:
-        main()
-    except Exception as e:
-        logger.error(f"Erro no main(): {e}")
+        app = AppSelecaoCSV()
+        app.mainloop()
 
+        if app.tipo_relatorio:
+            logger.info(
+                f"Relatório Solicitado: {app.tipo_relatorio} | "
+                f"País: {app.pais_selecionado} | Município: {app.municipio_selecionado} | "
+                f"Produto: {app.produto_selecionado} | Ano: {app.ano_selecionado} | "
+                f"Opção: {app.checkbox_valor}"
+            )
+            return (app.tipo_relatorio, app.pais_selecionado, app.municipio_selecionado,
+                    app.produto_selecionado, app.ano_selecionado, app.checkbox_valor)
+        else:
+            logger.info("Seleção Cancelada pelo Usuário.")
+            return None, None, None, None, None, None
+
+    except Exception as e:
+         logger.error(f"Erro no main(): {e}", exc_info=True)
+
+#In[]:
+if __name__ == "__main__":
+    main()

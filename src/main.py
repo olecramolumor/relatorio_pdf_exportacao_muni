@@ -6,8 +6,9 @@ import time
 #src
 #import relatorio_csv #1
 import relatorio_janela_main #2
-import relatorio_dataframe #3
-import relatorio_modelo #4
+#import relatorio_dataframe #3
+#import relatorio_modelo_ano #4
+import relatorio_modelo_pais #4
 #import relatorio_janela_salvar #5
 
 #In[2]:
@@ -23,19 +24,38 @@ def main():
     #CRIAR >csv DE CONSULTA
     #FEITO NO CÓDIGO DO relatorio_Janela_Main()
     #ABRIR JANELA DE BUSCA
-    pais, ano = relatorio_janela_main.main()
+    tipo_aba,pais, municipio,produto, ano,logo = relatorio_janela_main.main()
 
     #FAZER A BUSCA DE DADOS
-    relatorio_dataframe.main(pais,ano)
-
     #CRIAR O MODELO EM .pdf
     #SALVAR O ARQUIVO
-    arq_name = f"Relatório Exportação - {pais} - {ano}"
-    relatorio_modelo.main(arq_name, pais,ano)
+    if tipo_aba == "apenas_ano":
+        '''PRECISA FAZER O MODELO'''
+        logger.info(f"PASSO 1.2: Gerando Relatório Comercial Rondônia - {ano}")
+        arq_name = f"Relatório Exportação - Rondônia - {ano}"
+        relatorio_modelo_pais.main(tipo_aba,arq_name, ano,pais,logo)
 
+    elif tipo_aba == "municipio_ano":
+        '''PRECISA FAZER O MODELO'''
+        logger.info(f"PASSO 1.2: Gerando Relatório Comercial {municipio} - {ano}")
+        arq_name = f"Relatório Exportação - {municipio} - {ano}"
+        relatorio_modelo_pais.main(tipo_aba,arq_name, ano,municipio,logo)
+        
+    elif tipo_aba == "pais_ano":
+        logger.info(f"PASSO 1.2: Gerando Relatório Comercial {pais} - {ano}")
+        arq_name = f"Relatório Exportação - {pais} - {ano}"
+        relatorio_modelo_pais.main(tipo_aba,arq_name, ano,pais,logo)
+
+    elif tipo_aba == "produto_ano":
+        '''PRECISA FAZER O MODELO'''
+        logger.info(f"PASSO 1.2: Gerando Relatório Comercial {produto} - {ano}")
+        arq_name = f"Relatório Exportação - {produto} - {ano}"
+        relatorio_modelo_pais.main(tipo_aba,arq_name, ano,produto,logo)
+        
     tempo_fim = time.perf_counter()
     tempo_total = tempo_fim - tempo_ini
     logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
+
 #In[]:
 if __name__ == "__main__":
     main()

@@ -18,6 +18,10 @@ from svglib.svglib import svg2rlg
 from reportlab.graphics.shapes import Drawing 
 from reportlab.lib import colors
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak, Image, NextPageTemplate
+from reportlab.lib.utils import ImageReader
+
+from PIL import Image
+from io import BytesIO
 
 #In[2]:
 '''ESCOPO GLOBAL'''
@@ -44,36 +48,71 @@ ESCALAS_VALOR = [
 def formatar_br(numero):
     return f'{numero:,.2f}'.replace(',','X').replace('.',',').replace('X','.')
 
+#In[]:
 #FORMATAR QUANTIDADE DE PRODUTOS DO COMEX
 def formatar_produtos(texto, max_char=50, largura_quebra=30):
     texto = str(texto).strip()
     if len(texto) > max_char:
         texto = texto[: max_char - 3] + "..."
-
     return "\n".join(textwrap.wrap(texto, width=largura_quebra))
 
-#In[3]:
-#CRIAÇÃO DO DATAFRAME
-def relatorio_dataframe():
-    try:
-        #CAMINHO DAS PASTAS
-        pasta_atual = os.getcwd()
-        pasta_arq = os.path.join(pasta_atual, "Arquivos")
-        os.makedirs(pasta_arq, exist_ok=True)
+#In[]:
+#formatar imagem
+def carregar_imagem_recortada(caminho, margem_px=4):
+    """
+    Abre a imagem, remove as margens transparentes/vazias ao redor do
+    conteúdo real e retorna um ImageReader pronto para uso no canvas.
+    margem_px: pequena margem de respiro a manter ao redor do conteúdo.
+    """
+    img = Image.open(caminho).convert("RGBA")
+    bbox = img.getbbox()  # bounding box do conteúdo não-transparente
 
-        #NOME DO ARQUIVO
-        hoje = datetime.today().strftime("%d_%m_%y")
-        arq_nome = f"consulta.csv"
-        arq_cam = os.path.join(pasta_arq,arq_nome)
+    if bbox:
+        esquerda, topo, direita, base = bbox
+        # aplica uma margem de segurança sem estourar os limites da imagem
+        esquerda = max(esquerda - margem_px, 0)
+        topo = max(topo - margem_px, 0)
+        direita = min(direita + margem_px, img.width)
+        base = min(base + margem_px, img.height)
+        img = img.crop((esquerda, topo, direita, base))
 
-        #CRIANDO  DATAFRAME
-        return pd.read_csv(arq_cam, sep=';', encoding='utf-8-sig')        
-        
-    except Exception as e:
-        logger.error(f"Erro crítico: {e}", exc_info=True)
-        raise
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    return ImageReader(buffer)
 
-#In[4]:
+'''
+ESSA FUNÇÃO TEM O OBJETIVO DE LER UMA IMAGEM
+COM ISSO ELA LÊ UMA IMAGEM E RETORNA UM TAMANHO
+PROPORCIONAL PARA O REPORT LABS
+'''
+#In[]:
+def buffer_para_image(buf, largura_max, altura_max=340):
+    buf.seek(0)
+    drawing = svg2rlg(buf)
+
+    largura_px, altura_px = drawing.width, drawing.height
+    fator = largura_max / largura_px
+    largura_final = largura_max
+    altura_final = altura_px * fator
+
+    if altura_final > altura_max:
+        fator = altura_max / altura_px
+        altura_final = altura_max
+        largura_final = largura_px * fator
+
+    drawing.width = largura_final
+    drawing.height = altura_final
+    drawing.scale(fator, fator)
+    return drawing
+
+#In[]:
+'''
+GRÁFICOS UTILIZADOS EM TODOS OS MODELOS DE .pdf
+relatorio_modelo_muni.PY 
+'''
+#In[]:
+#FUNÇÃO GLOBAL
 def dataframe_exportacao(df):
     try:
         return df[df['fluxo'].str.lower() == 'exportação']
@@ -81,6 +120,7 @@ def dataframe_exportacao(df):
         logger.error(f"ERRO EM dataframe_exportacao(): {e}")
         return pd.DataFrame()
 
+#In[]:
 def dataframe_importacao(df):
     try:
         return df[df['fluxo'].str.lower() == 'importação']
@@ -89,11 +129,13 @@ def dataframe_importacao(df):
         return pd.DataFrame()
 
 #In[]:
-'''
-FUNÇÃO DE CRIAÇÃO DE TABELAS DA PAGINA COM DADOS DE QUANTIDADE DE VALOR FOB
-VALOR EM KG E QUANTIDADE DE PRODUTOS
-'''
 def montar_tabela_totais(df_fluxo, estilo_celula, estilo_header):
+    '''
+    FUNÇÃO DE CRIAÇÃO DE TABELAS DA PAGINA COM DADOS DE QUANTIDADE DE VALOR FOB
+    VALOR EM KG E QUANTIDADE DE PRODUTOS
+    USADO EM:
+    re
+    '''
     total_fob = formatar_br(df_fluxo['valor_fob'].sum())
     total_kg = formatar_br(df_fluxo['valor_kg'].sum())
     total_prod = int(df_fluxo['produto'].nunique())
@@ -105,6 +147,7 @@ def montar_tabela_totais(df_fluxo, estilo_celula, estilo_header):
         [Paragraph("Quantidade de Produtos", estilo_celula), Paragraph(str(total_prod), estilo_celula)]
     ]
 
+#In[]:
 def montar_tabela_mes(story, dados_totais, df_fluxo, tipo_fluxo, estilo_header, estilo_celula):
     #TABELAS DE VALOR POR MÊS
     t_totais = Table(dados_totais, colWidths=[150, 150])
@@ -155,31 +198,7 @@ def montar_tabela_mes(story, dados_totais, df_fluxo, tipo_fluxo, estilo_header, 
     story.append(NextPageTemplate('Paisagem'))
     story.append(PageBreak())
 
-#In[]
-'''
-ESSA FUNÇÃO TEM O OBJETIVO DE LER UMA IMAGEM
-COM ISSO ELA LÊ UMA IMAGEM E RETORNA UM TAMANHO
-PROPORCIONAL PARA O REPORT LABS
-'''
-def buffer_para_image(buf, largura_max, altura_max=340):
-    buf.seek(0)
-    drawing = svg2rlg(buf)
-
-    largura_px, altura_px = drawing.width, drawing.height
-    fator = largura_max / largura_px
-    largura_final = largura_max
-    altura_final = altura_px * fator
-
-    if altura_final > altura_max:
-        fator = altura_max / altura_px
-        altura_final = altura_max
-        largura_final = largura_px * fator
-
-    drawing.width = largura_final
-    drawing.height = altura_final
-    drawing.scale(fator, fator)
-    return drawing
-#In[]
+#In[]:
 def gerar_grafico_linha(df, titulo):
     #GERAR GRÁFICO DE VALOR FOB POR MÊS
     df_copy = df.copy()
@@ -230,7 +249,7 @@ def gerar_grafico_linha(df, titulo):
     plt.close(fig)
     return buffer_para_image(buf, altura_max=680,largura_max=450)
 
-#In[]
+#In[]:
 def gerar_grafico_barras(df_top10, x_col, y_col, titulo):
     
     df_copy = df_top10.copy()
@@ -248,8 +267,6 @@ def gerar_grafico_barras(df_top10, x_col, y_col, titulo):
     
     fig, ax = plt.subplots(figsize=(9,4.2))
     #MUDAR OS ROTULOS PARA PULAR LINHA
-    #rotulos = df_sorted[x_col].astype(str).apply(lambda x: '\n'.join(textwrap.wrap(x, width=15)))
-    #rotulos = df_sorted[x_col].astype(str).apply(lambda x: '\n'.join(textwrap.wrap(x)))
     rotulos = df_sorted[x_col].apply(formatar_produtos)
     
     #GÁFICO HORIZONTAL

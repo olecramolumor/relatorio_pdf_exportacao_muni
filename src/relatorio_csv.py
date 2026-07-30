@@ -33,7 +33,7 @@ def db_select(engine):
 
         # QUERY SQL DO .csv
         query = (
-            select(tabela.c.pais, tabela.c.ano).distinct()
+            select(tabela.c.pais, tabela.c.ano, tabela.c.municipio,tabela.c.produto).distinct()
         )
         
         #LEVANTAR ERRO SE NÃO ENCONTRAR A TABELA
@@ -57,6 +57,7 @@ def db_etl(df):
         try:
             #REMOVENDO #U+00a0
             df = df.map(lambda x: x.replace('\xa0', ' ').strip() if isinstance(x, str) else x)
+            df['ano'] = df['ano'].astype(int)
             return df
 
         except Exception as e:
@@ -107,11 +108,21 @@ def main():
         logger.info("PASSO 1.3:ETL DO DATAFRAME")
         df_final = db_etl(df)
 
+        '''
         logger.info("PASSO 1.4: SALVANDO DATAFRAME")
-        arq_cam= db_dataframe(df_final)      
+        db_dataframe(df_final)
+        '''
+       
+        # PASSO 1.5: EXTRAINDO LISTAS DO DF
+        paises = sorted(df_final['pais'].dropna().astype(str).str.strip().unique().tolist())
+        municipios = sorted(df_final['municipio'].dropna().astype(str).str.strip().unique().tolist())
+        produto = sorted(df_final['produto'].dropna().astype(str).str.strip().unique().tolist())
+        
+        anos_int = sorted(df_final['ano'].dropna().astype(int).unique().tolist(), reverse=True)
+        anos_str = [str(a) for a in anos_int]
 
         sucesso = True
-        return arq_cam
+        return paises, municipios, anos_str, produto
 
     except Exception as e:
         logger.error(f"Erro crítico: {e}", exc_info=True)
