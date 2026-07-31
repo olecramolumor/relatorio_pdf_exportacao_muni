@@ -1,6 +1,8 @@
 #In[1]:
 import os
 import logging
+import time
+
 import textwrap
 import pandas as pd
 from datetime import datetime
@@ -429,16 +431,35 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo):
 
 #In[]:
 def main(tipo_aba,nome_arquivo, ano,logo):
+    tempo_ini = time.perf_counter()
+    sucesso = False
     try:
         pais=None
+
+        logger.info("RELATÓRIO GERADO COM ÊXITO")
         df=relatorio_dataframe.main(tipo_aba,ano,pais)
+
+        logger.info("RELATÓRIO GERADO COM ÊXITO")
         df_exp = dataframe_exportacao(df)
+
+        logger.info("RELATÓRIO GERADO COM ÊXITO")
         df_imp = dataframe_importacao(df)
+
+        logger.info("RELATÓRIO GERADO COM ÊXITO")
         gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo)
+        sucesso = True
 
     except Exception as e:
          logger.error(f"Erro: {e}",exc_info=True)
          raise
+
+    finally:
+        if sucesso:
+            logger.info("RELATÓRIO GERADO COM ÊXITO")
+
+        tempo_fim = time.perf_counter()
+        tempo_total = tempo_fim - tempo_ini
+        logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
 
 #In[6]:
 if __name__ == "__main__":

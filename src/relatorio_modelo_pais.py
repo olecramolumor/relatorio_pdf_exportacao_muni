@@ -10,6 +10,7 @@ from reportlab.platypus import SimpleDocTemplate, BaseDocTemplate, PageTemplate,
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
 from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase.pdfmetrics import stringWidth
 
 import matplotlib
 matplotlib.use('Agg')  
@@ -106,9 +107,59 @@ def desenhar_cabecalho_rodape(pais,ano,canvas,doc, exibir_imagens=True, caminhos
 
     #TÍTULO DO RELATÓRIO:
     texto_relatorio = f"Relatório de Comércio Exterior: {pais} - {ano}"
-    canvas.setFont('Helvetica-Bold',14)
-    canvas.setFillColor(cor_texto_cabecalho)
-    canvas.drawString(64, altura - 59, texto_relatorio)
+    fonte = "Helvetica-Bold"
+    tamanho = 14
+
+    # Limite esquerdo das imagens
+    margem_lateral = 10
+    espaco_entre_imagens = 8
+
+    # Reserva um espaço fixo para as duas imagens (ajuste conforme necessário)
+    largura_reservada_imagens = 120
+    largura_disponivel = largura_faixa - largura_reservada_imagens - 20
+
+    # Função para quebrar o texto
+    def quebrar_texto(texto, fonte, tamanho, largura_max):
+        palavras = texto.split()
+        linhas = []
+        linha = ""
+
+        for palavra in palavras:
+            teste = palavra if linha == "" else f"{linha} {palavra}"
+
+            if stringWidth(teste, fonte, tamanho) <= largura_max:
+                linha = teste
+            else:
+                linhas.append(linha)
+                linha = palavra
+
+        if linha:
+            linhas.append(linha)
+
+        return linhas
+
+    linhas = quebrar_texto(
+        texto_relatorio,
+        fonte,
+        tamanho,
+        largura_disponivel
+    )
+
+    texto = canvas.beginText()
+    texto.setFont(fonte, tamanho)
+    texto.setFillColor(cor_texto_cabecalho)
+
+    # Se houver duas linhas, sobe um pouco a primeira
+    y_texto = altura - 59
+    if len(linhas) > 1:
+        y_texto += 7
+
+    texto.setTextOrigin(64, y_texto)
+
+    for linha in linhas[:2]:   # no máximo duas linhas
+        texto.textLine(linha)
+
+    canvas.drawText(texto)
 
     #IMAGENS DO CABEÇALHO (LADO DIREITO)
     if exibir_imagens and caminhos_imagens:
@@ -120,41 +171,32 @@ def desenhar_cabecalho_rodape(pais,ano,canvas,doc, exibir_imagens=True, caminhos
 
         # posição inicial: borda direita da faixa azul, menos a margem
         x_atual = 54 + largura_faixa - margem_lateral
+
         # espaço reservado para o título (evita sobreposição)
-        largura_reservada_titulo = canvas.stringWidth(texto_relatorio, 'Helvetica-Bold', 14) + 20
+        #largura_reservada_titulo = max(canvas.stringWidth(linha, "Helvetica-Bold", 14) for linha in linhas) + 20
 
         x_atual = 54 + largura_faixa - margem_lateral
-        limite_esquerdo = 64 + largura_reservada_titulo
 
         for caminho in reversed(caminhos_imagens):
-            try:
-                img = gfs.carregar_imagem_recortada(caminho)
-                largura_original, altura_original = img.getSize()
-                escala = altura_maxima_imagem / altura_original
-                largura_imagem = largura_original * escala
+            img = carregar_imagem_recortada(caminho)
 
-                # se não couber, reduz a imagem para caber no espaço restante
-                if x_atual - largura_imagem < limite_esquerdo:
-                    largura_imagem = max(x_atual - limite_esquerdo, 0)
-                    if largura_imagem <= 0:
-                        continue  # sem espaço, pula a imagem
-                    altura_desenho = largura_imagem * (altura_original / largura_original)
-                else:
-                    altura_desenho = altura_maxima_imagem
+            largura_original, altura_original = img.getSize()
+            escala = altura_maxima_imagem / altura_original
+            largura_imagem = largura_original * escala
 
-                x_atual -= largura_imagem
-                canvas.drawImage(
-                    img,
-                    x_atual,
-                    y_faixa + (altura_faixa - altura_desenho) / 2,  # centraliza verticalmente
-                    width=largura_imagem,
-                    height=altura_desenho,
-                    mask='auto',
-                    preserveAspectRatio=True
-                )
-                x_atual -= espaco_entre_imagens
-            except Exception as e:
-                print(f"Aviso: não foi possível carregar a imagem '{caminho}': {e}")
+            x_atual -= largura_imagem
+
+            canvas.drawImage(
+                img,
+                x_atual,
+                y_faixa + (altura_faixa - altura_maxima_imagem) / 2,
+                width=largura_imagem,
+                height=altura_maxima_imagem,
+                preserveAspectRatio=True,
+                mask="auto"
+            )
+
+            x_atual -= espaco_entre_imagens
 
     '''RODAPÉ'''
     canvas.setStrokeColor(colors.HexColor("#CBD5E1"))
@@ -436,8 +478,9 @@ def main(tipo_aba,nome_arquivo, ano, pais,logo):
 if __name__ == "__main__":
     logos = True,False
     for logo in logos:
-        pais= "China"
+        #pais= "China"
+        pais= "Bonaire, Saint Eustatius e Saba"
         ano = 2025
-        nome_arquivo = f"Teste XX - pais - {logo}"
+        nome_arquivo = f"Teste XX - {pais} - {logo}"
         tipo_aba = "pais_ano"
         main(tipo_aba,nome_arquivo, ano, pais,logo)
