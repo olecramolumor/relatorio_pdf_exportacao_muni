@@ -6,6 +6,7 @@ import time
 #src
 import relatorio_janela_main #2
 import relatorio_modelo_ano #4
+import relatorio_modelo_municipio #4
 import relatorio_modelo_pais #4
 
 #In[2]:
@@ -36,7 +37,7 @@ def main():
         '''PRECISA FAZER O MODELO'''
         logger.info(f"PASSO 1.2: Gerando Relatório Comercial {municipio} - {ano}")
         arq_name = f"Relatório Exportação - {municipio} - {ano}"
-        #relatorio_modelo_muni.main(tipo_aba,arq_name, ano,municipio,logo)
+        relatorio_modelo_municipio.main(tipo_aba,arq_name, ano,municipio,logo)
         
     elif tipo_aba == "pais_ano":
         logger.info(f"PASSO 1.2: Gerando Relatório Comercial {pais} - {ano}")

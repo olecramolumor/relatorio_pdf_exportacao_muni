@@ -1,8 +1,6 @@
 #In[1]:
 import os
 import logging
-import time
-
 import textwrap
 import pandas as pd
 from datetime import datetime
@@ -87,7 +85,7 @@ def dataframe_importacao(df):
         return pd.DataFrame()
 
 #In[5]
-def desenhar_cabecalho_rodape(ano,canvas,doc, exibir_imagens=True, caminhos_imagens=None):
+def desenhar_cabecalho_rodape(produto,ano,canvas,doc, exibir_imagens=True, caminhos_imagens=None):
     canvas.saveState()
 
     #Tamanho da Página
@@ -108,7 +106,7 @@ def desenhar_cabecalho_rodape(ano,canvas,doc, exibir_imagens=True, caminhos_imag
     canvas.rect(54, y_faixa, largura_faixa, altura_faixa, stroke=0, fill=1)
 
     #TÍTULO DO RELATÓRIO:
-    texto_relatorio = f"Relatório de Comércio Exterior: Rondônia - {ano}"
+    texto_relatorio = f"Relatório de Comércio Exterior: {produto} - {ano}"
     fonte = "Helvetica-Bold"
     tamanho = 14
 
@@ -260,22 +258,15 @@ def construir_secao_fluxo(story, df_fluxo, tipo_fluxo, styles):
     
     #TABELAS POR MÊS
     gfs.montar_tabela_mes(story, dados_totais, df_fluxo, tipo_fluxo, estilo_header, estilo_celula)
-
-    """ ----- PÁGINA 2 ----- """
-    story.append(Paragraph(f"Análise de {tipo_fluxo} - Top 10 Países", styles['TituloTopico']))
-    df_prod = df_fluxo.groupby('pais', as_index=False)['valor_fob'].sum().sort_values('valor_fob', ascending=False).head(10)
-    img_prod = gfs.gerar_grafico_barras(df_prod, 'pais', 'valor_fob', f"Top 10 Países por Valor FOB - {tipo_fluxo}")
-    story.append(img_prod)
-    story.append(PageBreak())
     
-    """ ----- PÁGINA 3 ----- """
+    """ ----- PÁGINA 2 ----- """
     story.append(Paragraph(f"Análise de {tipo_fluxo} - Top 10 Produtos", styles['TituloTopico']))
     df_prod = df_fluxo.groupby('produto', as_index=False)['valor_fob'].sum().sort_values('valor_fob', ascending=False).head(10)
     img_prod = gfs.gerar_grafico_barras(df_prod, 'produto', 'valor_fob', f"Top 10 Produtos por Valor FOB - {tipo_fluxo}")
     story.append(img_prod)
     story.append(PageBreak())
 
-    """ ----- PÁGINA 4 ----- """
+    """ ----- PÁGINA 3 ----- """
     story.append(Paragraph(f"Análise de {tipo_fluxo} - Top 10 Municípios", styles['TituloTopico']))
     df_mun = df_fluxo.groupby('municipio', as_index=False)['valor_fob'].sum().sort_values('valor_fob', ascending=False).head(10)
     img_mun = gfs.gerar_grafico_barras(df_mun, 'municipio', 'valor_fob', f"Top 10 Municípios por Valor FOB - {tipo_fluxo}")
@@ -284,7 +275,7 @@ def construir_secao_fluxo(story, df_fluxo, tipo_fluxo, styles):
     story.append(PageBreak())
 
 #In[5]:
-def gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo):
+def gerar_relatorio(nome_arquivo, df_exp, df_imp, produto, ano,logo):
     try:
         caminho_arquivo = relatorio_janela_main.janela_salvar(nome_arquivo)
 
@@ -324,7 +315,7 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo):
         for img in imagens:
             arq_name = os.path.join(pasta_aux,img)
             arq_cam.append(arq_name)
-        cabecalho_e_rodape_dados = partial(desenhar_cabecalho_rodape, ano, exibir_imagens=logo, caminhos_imagens=arq_cam)
+        cabecalho_e_rodape_dados = partial(desenhar_cabecalho_rodape, produto, ano, exibir_imagens=logo, caminhos_imagens=arq_cam)
 
         doc = BaseDocTemplate(
             caminho_arquivo,
@@ -472,42 +463,24 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo):
         
 
 #In[]:
-def main(tipo_aba,nome_arquivo, ano,logo):
-    tempo_ini = time.perf_counter()
-    sucesso = False
+def main(tipo_aba,nome_arquivo, ano, produto,logo):
     try:
-        pais=None
-
-        logger.info("RELATÓRIO GERADO COM ÊXITO")
-        df=relatorio_dataframe.main(tipo_aba,ano,pais)
-
-        logger.info("RELATÓRIO GERADO COM ÊXITO")
+        df=relatorio_dataframe.main(tipo_aba,ano,produto)
         df_exp = dataframe_exportacao(df)
-
-        logger.info("RELATÓRIO GERADO COM ÊXITO")
         df_imp = dataframe_importacao(df)
-
-        logger.info("RELATÓRIO GERADO COM ÊXITO")
-        gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo)
-        sucesso = True
+        gerar_relatorio(nome_arquivo, df_exp, df_imp, produto, ano,logo)
 
     except Exception as e:
          logger.error(f"Erro: {e}",exc_info=True)
          raise
 
-    finally:
-        if sucesso:
-            logger.info("RELATÓRIO GERADO COM ÊXITO")
-
-        tempo_fim = time.perf_counter()
-        tempo_total = tempo_fim - tempo_ini
-        logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
-
 #In[6]:
 if __name__ == "__main__":
     logos = True,False
     for logo in logos:
+        #pais= "China"
+        produto= "Bonaire, Saint Eustatius e Saba"
         ano = 2025
-        nome_arquivo = f"Teste XX - ano - {logo}"
-        tipo_aba = "apenas_ano"
-        main(tipo_aba,nome_arquivo, ano,logo)
+        nome_arquivo = f"Teste XX - {produto} - {logo}"
+        tipo_aba = "produto_ano"
+        main(tipo_aba,nome_arquivo, ano, produto,logo)
