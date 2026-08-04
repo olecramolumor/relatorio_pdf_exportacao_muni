@@ -282,6 +282,7 @@ def construir_secao_fluxo(story, df_fluxo, tipo_fluxo, styles):
     story.append(img_mun)
     story.append(NextPageTemplate("Retrato"))
     story.append(PageBreak())
+    
 
 #In[5]:
 def gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo):
@@ -460,6 +461,58 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, ano,logo):
         '''SEÇÃO DE IMPORTAÇÃO'''
         construir_secao_fluxo(story, df_imp, "Importação", styles)
 
+        """ ----- PÁGINA 5 ----- """
+        # story.append(PageBreak())
+        
+        story.append(NextPageTemplate("Retrato"))
+
+        estilo_celula = ParagraphStyle(
+            "Cel", parent=styles["Normal"], fontSize=8, leading=10, alignment=TA_CENTER
+        )
+        estilo_header = ParagraphStyle(
+            "Head",
+            parent=styles["Normal"],
+            fontSize=9,
+            leading=11,
+            fontName="Helvetica-Bold",
+            textColor=colors.white,
+            alignment=TA_CENTER,
+        )
+
+        story.append(Paragraph("Comparação 2025 e 2026", styles["TituloTopico"]))
+        story.append(Paragraph("O 1º semestre de 2026 fechou acima de 2025 em valor (+15,78 %), mas com volume menor (-4,78 %)." \
+        " É o sinal clássico de uma economia estadual exportando menos toneladas por dólar maior —" \
+        " evidência de ganho de preço médio ou mudança no mix de produtos embarcados.", styles["TextoCorpo"]))
+        dados_tabela = gfs.montar_tabela_comparar(estilo_celula, estilo_header)
+
+        # TABELA DE COMPARAÇÃO (7 COLUNAS)
+        # Ajustando as larguras para caber em uma página A4 Retrato (Soma = 505pt)
+        col_widths = [55, 75, 75, 75, 75, 75, 75]
+
+        t_totais = Table(dados_tabela, colWidths=col_widths)
+        t_totais.setStyle(
+            TableStyle(
+                [
+                    # (-1,0) garante que o fundo azul cubra TODAS as colunas na linha 0
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2B6CB0")),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#F7FAFC")],
+                    ),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ]
+            )
+        )
+
+        story.append(t_totais)
+        story.append(Spacer(1, 15))
+
         if story and isinstance(story[-1], PageBreak):
             story.pop()
 
@@ -506,8 +559,12 @@ def main(tipo_aba,nome_arquivo, ano,logo):
 #In[6]:
 if __name__ == "__main__":
     logos = True,False
-    for logo in logos:
+    ano = 2025
+    nome_arquivo = f"Teste XX - ano - {logos[1]}"
+    tipo_aba = "apenas_ano"
+    main(tipo_aba,nome_arquivo, ano,logos[1])
+    '''for logo in logos:
         ano = 2025
         nome_arquivo = f"Teste XX - ano - {logo}"
         tipo_aba = "apenas_ano"
-        main(tipo_aba,nome_arquivo, ano,logo)
+        main(tipo_aba,nome_arquivo, ano,logo)'''

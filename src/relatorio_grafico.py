@@ -139,12 +139,14 @@ def montar_tabela_totais(df_fluxo, estilo_celula, estilo_header):
     total_fob = formatar_br(df_fluxo['valor_fob'].sum())
     total_kg = formatar_br(df_fluxo['valor_kg'].sum())
     total_prod = int(df_fluxo['produto'].nunique())
+    total_pais = int(df_fluxo['pais'].nunique())
 
     return [
         [Paragraph("Métrica", estilo_header), Paragraph("Valor Total", estilo_header)],
         [Paragraph("Valor FOB (US$)", estilo_celula), Paragraph(total_fob, estilo_celula)],
         [Paragraph("Peso Líquido (KG)", estilo_celula), Paragraph(total_kg, estilo_celula)],
-        [Paragraph("Quantidade de Produtos", estilo_celula), Paragraph(str(total_prod), estilo_celula)]
+        [Paragraph("Quantidade de Produtos", estilo_celula), Paragraph(str(total_prod), estilo_celula)],
+        [Paragraph("Quantidade de Países", estilo_celula), Paragraph(str(total_pais), estilo_celula)]
     ]
 
 #In[]:
@@ -288,3 +290,88 @@ def gerar_grafico_barras(df_top10, x_col, y_col, titulo):
     fig.savefig(buf, format='svg', bbox_inches='tight', pad_inches=0.25)
     plt.close(fig)
     return buffer_para_image(buf, largura_max=710,altura_max=340)
+
+
+
+
+def montar_tabela_comparar(estilo_celula, estilo_header):
+    """FUNÇÃO DE CRIAÇÃO DE TABELAS DA PAGINA COM DADOS DE QUANTIDADE DE VALOR
+    FOB VALOR EM KG E QUANTIDADE DE PRODUTOS USADO EM:
+
+    re
+    """
+
+    return [
+        [
+            Paragraph("Mês", estilo_header),
+            Paragraph("Valor 2025 (US$)", estilo_header),
+            Paragraph("Volume 2025 (kg)", estilo_header),  # Corrigido (kg)
+            Paragraph("Valor 2026 (US$)", estilo_header),
+            Paragraph("Volume 2026 (kg)", estilo_header),  # Corrigido (kg)
+            Paragraph("Diferença Valor % (2026 - 2025)", estilo_header),
+            Paragraph("Diferença Volume % (2026 - 2025)", estilo_header),
+        ],
+        [
+            Paragraph("Jan", estilo_celula),
+            Paragraph("151.652.092", estilo_celula),
+            Paragraph("232.117.816", estilo_celula),
+            Paragraph("171.579.239", estilo_celula),
+            Paragraph("131.329.946", estilo_celula),
+            Paragraph("+13,14 %", estilo_celula),  # Corrigido arredondamento
+            Paragraph("-43,42 %", estilo_celula),
+        ],
+        [
+            Paragraph("Fev", estilo_celula),
+            Paragraph("180.949.428", estilo_celula),
+            Paragraph("229.985.383", estilo_celula),
+            Paragraph("257.208.052", estilo_celula),
+            Paragraph("356.868.545", estilo_celula),
+            Paragraph("+42,13 %", estilo_celula),
+            Paragraph("+55,17 %", estilo_celula),
+        ],
+        [
+            Paragraph("Mar", estilo_celula),
+            Paragraph("388.852.196", estilo_celula),
+            Paragraph("745.861.844", estilo_celula),
+            Paragraph("491.726.462", estilo_celula),
+            Paragraph("904.022.737", estilo_celula),
+            Paragraph("+26,46 %", estilo_celula),
+            Paragraph("+21,21 %", estilo_celula),
+        ],
+        [
+            Paragraph("Abr", estilo_celula),
+            Paragraph("416.267.735", estilo_celula),
+            Paragraph("797.050.833", estilo_celula),
+            Paragraph("441.305.912", estilo_celula),
+            Paragraph("731.509.314", estilo_celula),
+            Paragraph("+6,01 %", estilo_celula),
+            Paragraph("-8,22 %", estilo_celula),
+        ],
+        [
+            Paragraph("Mai", estilo_celula),
+            Paragraph("329.659.937", estilo_celula),
+            Paragraph("588.865.053", estilo_celula),
+            Paragraph("353.471.092", estilo_celula),
+            Paragraph("410.834.497", estilo_celula),
+            Paragraph("+7,22 %", estilo_celula),
+            Paragraph("-30,24 %", estilo_celula),
+        ],
+        [
+            Paragraph("Jun", estilo_celula),
+            Paragraph("274.211.607", estilo_celula),
+            Paragraph("385.093.156", estilo_celula),
+            Paragraph("301.158.703", estilo_celula),
+            Paragraph("301.741.383", estilo_celula),
+            Paragraph("+9,82 %", estilo_celula),
+            Paragraph("-21,64 %", estilo_celula),
+        ],
+        [
+            Paragraph("Total", estilo_celula),
+            Paragraph("1.741.592.995", estilo_celula),
+            Paragraph("2.978.974.085", estilo_celula),
+            Paragraph("2.016.449.460", estilo_celula),
+            Paragraph("2.836.306.422", estilo_celula),
+            Paragraph("+15,78 %", estilo_celula),
+            Paragraph("-4,78 %", estilo_celula),
+        ],
+    ]

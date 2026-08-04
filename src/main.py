@@ -1,7 +1,9 @@
 #In[1]:
 #PYTHON
+import os
 import logging
 import time
+from datetime import datetime
 
 #src
 import relatorio_janela_main #2
@@ -16,8 +18,38 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s - %(f
 logger = logging.getLogger(__name__)
 
 #In[]:
+def setup_master_logging(nome_sistema):
+    #DATA DE EXECUÇÃO DO SCRIPT
+    data_exec = datetime.today()
+    data_format = data_exec.strftime('%d_%m_%Y') 
+
+    #PASTA DE LOG
+    pasta_atual = os.getcwd() 
+    pasta_log = os.path.join(pasta_atual,'Logs')
+    os.makedirs(pasta_log, exist_ok=True)
+
+    #ARQUIVO DE LOG    
+    arq_log = os.path.join(pasta_log,f"{data_format}_{nome_sistema}_processo_completo.log")
+
+    # formato do log
+    log_format = '%(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(message)s'
+    logging.basicConfig(
+        level=logging.INFO,
+        format= log_format,
+        handlers= [
+            logging.FileHandler(arq_log, mode = 'a', encoding='utf-8'),
+            logging.StreamHandler()
+            ],
+        force=True
+    )
+
+    return arq_log
+
+#In[]:
 def main():
     tempo_ini = time.perf_counter()
+    nome_sistema = "relatorio_comex_stat"
+    setup_master_logging(nome_sistema)
 
     #CRIAR >csv DE CONSULTA
     #FEITO NO CÓDIGO DO relatorio_Janela_Main()

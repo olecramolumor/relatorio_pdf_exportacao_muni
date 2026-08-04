@@ -1,4 +1,5 @@
 #In[]:
+import time
 import logging
 import tkinter as tk
 import customtkinter as ctk
@@ -260,6 +261,11 @@ def janela_salvar(nome_padrao):
 
 #In[]
 def main():
+    tempo_ini = time.perf_counter()
+    logger.info("=="*32)
+    logger.info("--- INÍCIO PROCESSO DE JANELA ---")
+    sucesso = False
+
     try:
         app = AppSelecaoCSV()
         app.mainloop()
@@ -271,14 +277,24 @@ def main():
                 f"Produto: {app.produto_selecionado} | Ano: {app.ano_selecionado} | "
                 f"Opção: {app.checkbox_valor}"
             )
+            sucesso = True
             return (app.tipo_relatorio, app.pais_selecionado, app.municipio_selecionado,
                     app.produto_selecionado, app.ano_selecionado, app.checkbox_valor)
         else:
-            logger.info("Seleção Cancelada pelo Usuário.")
+            cancelado = True
             return None, None, None, None, None, None
 
     except Exception as e:
          logger.error(f"Erro no main(): {e}", exc_info=True)
+
+    finally:
+        tempo_fim = time.perf_counter()
+        tempo_total = tempo_fim - tempo_ini
+        logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total}")
+        logger.info("--- FIM PROCESSO DE JANELAS ---")
+        logger.info("=="*32)
+
+
 
 #In[]:
 if __name__ == "__main__":
