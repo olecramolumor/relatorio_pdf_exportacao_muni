@@ -21,25 +21,18 @@ logger = logging.getLogger(__name__)
 
 #LOAD DO .env ÚNICO
 load_dotenv()
+dados_brutos = os.getenv("DB_TAB")
+dados_lista = [item.strip() for item in dados_brutos.split(",")]
 
 #In[5]:
 #FUNÇÃO DE SELECT DO BD
-def db_select(engine):
+def db_select(engine,tabela):
     try:
-        #CRIAÇÃO DA TABELA
-        metadata = MetaData()
-        tabela_nome = os.getenv("DB_TAB")
-        tabela = Table(tabela_nome, metadata, autoload_with=engine)
-
         # QUERY SQL DO .csv
         query = (
             select(tabela.c.pais, tabela.c.ano, tabela.c.municipio,tabela.c.produto).distinct()
         )
         
-        #LEVANTAR ERRO SE NÃO ENCONTRAR A TABELA
-        if not tabela_nome:
-            raise ValueError("Variável 'DB_TAB' não foi encontrada no .env")
-
         #CONEXÃO COM O BANCO DE DADOS
         with engine.connect() as conn:
             #CRIANDO O DATAFRAME
@@ -101,9 +94,12 @@ def main():
 
         logger.info("PASSO 1.1: CONEXÃO COM O BANCO DE DADOS")
         engine = relatorio_utils.main()
+        metadata = MetaData()
+        tabela1 = Table(dados_lista[0], metadata, autoload_with=engine)
+                
 
         logger.info("PASSO 1.2: FAZENDO A QUERY DE DADOS")
-        df = db_select(engine)
+        df = db_select(engine,tabela1)
 
         logger.info("PASSO 1.3:ETL DO DATAFRAME")
         df_final = db_etl(df)

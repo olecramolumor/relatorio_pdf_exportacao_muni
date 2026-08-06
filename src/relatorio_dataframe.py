@@ -4,6 +4,7 @@ import pandas as pd
 import logging
 import time
 from dotenv import load_dotenv
+from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table, select
 
 #SRC
@@ -17,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 #LOAD DO .env ÚNICO
 load_dotenv()
+dados_brutos = os.getenv("DB_TAB")
+dados_lista = [item.strip() for item in dados_brutos.split(",")]
+
 
 #In[]
 def relatorio_conn():
@@ -24,10 +28,7 @@ def relatorio_conn():
         logger.info("PASSO 1.1: CONEXÃO COM O BANCO DE DADOS")
         engine = relatorio_utils.main()
 
-        metadata = MetaData()
-        tabela = Table(os.getenv('DB_TAB'), metadata, autoload_with=engine)
-
-        return engine , tabela
+        return engine
 
     except Exception as e:
         logger.error(f"Erro na Conexão em relatorio_conn(): {e}", exc_info=True)
@@ -47,7 +48,8 @@ def relatorio_select_ano(engine,tabela, flt_ano):
 
             df = pd.DataFrame(resultado.fetchall(), columns=resultado.keys())
         
-        logger.info(f"PASSO 1.3.1: Sucesso para a execução do Dataframe de {flt_ano}. Total de Linhas: {len(df)}")
+        logger.info(f"PASSO 1.2.1.1: Sucesso para a execução do Dataframe de {flt_ano}.")
+        logger.info(f"Total de Linhas: {len(df)}")
 
         return df
     
@@ -68,7 +70,8 @@ def relatorio_select_muni(engine,tabela, flt_ano, flt_municipio):
 
             df = pd.DataFrame(resultado.fetchall(), columns=resultado.keys())
         
-        logger.info(f"PASSO 1.3.1: Sucesso para a execução do Dataframe de {flt_municipio} - {flt_ano}. Total de Linhas: {len(df)}")
+        logger.info(f"PASSO 1.2.2.1: Sucesso para a execução do Dataframe de {flt_municipio} - {flt_ano}.")
+        logger.info(f"Total de Linhas: {len(df)}")
 
         return df
     
@@ -89,7 +92,8 @@ def relatorio_select_pais(engine,tabela, flt_ano, flt_pais):
 
             df = pd.DataFrame(resultado.fetchall(), columns=resultado.keys())
         
-        logger.info(f"PASSO 1.3.1: Sucesso para a execução do Dataframe de {flt_pais} - {flt_ano}. Total de Linhas: {len(df)}")
+        logger.info(f"PASSO 1.2.3.1: Sucesso para a execução do Dataframe de {flt_pais} - {flt_ano}.")
+        logger.info(f"Total de Linhas: {len(df)}")
 
         return df
     
@@ -110,7 +114,8 @@ def relatorio_select_produto(engine,tabela, flt_ano, flt_produto):
 
             df = pd.DataFrame(resultado.fetchall(), columns=resultado.keys())
         
-        logger.info(f"PASSO 1.3.1: Sucesso para a execução do Dataframe de {flt_produto} - {flt_ano}. Total de Linhas: {len(df)}")
+        logger.info(f"PASSO 1.2.4.1: Sucesso para a execução do Dataframe de {flt_produto} - {flt_ano}.")
+        logger.info(f"Total de Linhas: {len(df)}")
 
         return df
     
@@ -119,18 +124,45 @@ def relatorio_select_produto(engine,tabela, flt_ano, flt_produto):
         raise
 
 #In[]:
-def relatorio_df_etl(df):
-        #REMOVENDO #U+00a0
-        df = df.map(lambda x: x.replace('\xa0', ' ').strip() if isinstance(x, str) else x)
+def relatorio_select_balanca_comercial(engine,tabela,flt_ano):
+    try:
+            with engine.connect() as conn:
+                ano_atual = datetime.today().year
+                if ano_atual == flt_ano:
+                  ano_comparacao = ano_atual - 1
 
-        #REMOVER LINE BREAK
-        df['produto'] = df['produto'].str.replace(r'\xa0', ' ', regex=True)
+                else:
+                    ano_comparacao = ano_atual
+                    
+                query = (
+                            select(tabela)
+                            .where(
+                                tabela.c.estado == "Rondônia",
+                                tabela.c.ano.in_([flt_ano,ano_comparacao])
+                            )
+                        )
+                resultado = conn.execute(query)
+                df = pd.DataFrame(resultado.fetchall(), columns=resultado.keys())
+
+            logger.info(f"PASSO 1.3.1.1: Sucesso para a execução do Dataframe de Balança Comercial {flt_ano} e {ano_comparacao}.")
+            logger.info(f"Total de Linhas: {len(df)}")
+
+            return df
+    
+    except Exception as e:
+        logger.error(f"Erro crítico: {e}", exc_info=True)
+        raise
+
+#In[]:
+def relatorio_df_etl(df):
+        #REMOVENDO #U+00a0 (LINE BREAK)
+        df = df.map(lambda x: x.replace('\xa0', ' ').strip() if isinstance(x, str) else x)
 
         return df
 
 #In[6]:
 #FUNÇÃO DE DF BD
-def relatorio_salva_dataframe(tipo_aba,df):
+def relatorio_salva_dataframe(tipo_aba,df,nome_arq):
     try:
         #CAMINHO DAS PASTAS
         pasta_atual = os.getcwd()
@@ -138,8 +170,8 @@ def relatorio_salva_dataframe(tipo_aba,df):
         os.makedirs(pasta_arq, exist_ok=True)
 
         #NOME DO ARQUIVO
-        arq_nome = f"{tipo_aba}_consulta.csv"
-        arq_cam = os.path.join(pasta_arq,arq_nome)
+       
+        arq_cam = os.path.join(pasta_arq,nome_arq)
 
         #SALVANDO DATAFRAME
         df.to_csv(arq_cam, index=False, sep=';', encoding="utf-8-sig")
@@ -160,31 +192,46 @@ def main(tipo_aba, flt_ano, flt_sec):
         logger.info("--- INÍCIO PROCESSO DE COLETA DO DATAFRAME ---")
 
         logger.info("PASSO 1.1: CONEXÃO COM O BANCO DE DADOS")
-        engine,tabela = relatorio_conn()
+        engine= relatorio_conn()
+        
+        metadata = MetaData()
+        tabela1 = Table(dados_lista[0], metadata, autoload_with=engine)
+        tabela2 = Table(dados_lista[1], metadata, autoload_with=engine)
 
+        logger.info("PASSO 1.2 - INICIANDO COLETA DE DADOS DO DATAFRAME PADRÃO")
         if tipo_aba == "apenas_ano":
-            logger.info("PASSO 1.2: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_ano(engine,tabela, flt_ano)
+            logger.info("PASSO 1.2.1: FAZENDO A QUERY DE DADOS")
+            df = relatorio_select_ano(engine,tabela1, flt_ano)
 
         elif tipo_aba == "municipio_ano":
-            logger.info("PASSO 1.2: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_muni(engine,tabela, flt_ano, flt_sec)
+            logger.info("PASSO 1.2.2: FAZENDO A QUERY DE DADOS")
+            df = relatorio_select_muni(engine,tabela1, flt_ano, flt_sec)
 
         elif tipo_aba == "pais_ano":
-            logger.info("PASSO 1.2: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_pais(engine,tabela, flt_ano, flt_sec)
+            logger.info("PASSO 1.2.3: FAZENDO A QUERY DE DADOS")
+            df = relatorio_select_pais(engine,tabela1, flt_ano, flt_sec)
 
         elif tipo_aba == "produto_ano":
-            logger.info("PASSO 1.2: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_produto(engine,tabela, flt_ano, flt_sec)        
+            logger.info("PASSO 1.2.4: FAZENDO A QUERY DE DADOS")
+            df = relatorio_select_produto(engine,tabela1, flt_ano, flt_sec)        
 
-        logger.info("PASSO 1.3: SALVANDO DATAFRAME")
-        df_final = relatorio_df_etl(df)
+        logger.info("PASSO 1.3 - INICIANDO COLETA DE DADOS DO DATAFRAME BALANÇA COMERCIAL")
+        logger.info("PASSO 1.3.1: FAZENDO A QUERY DE DADOS")
+        df_balanca = relatorio_select_balanca_comercial(engine,tabela2,flt_ano)
 
-        logger.info("PASSO 1.4: SALVANDO DATAFRAME")
-        relatorio_salva_dataframe(tipo_aba,df_final)
+        logger.info("PASSO 1.4: ALTERANDO DATAFRAME")
+        df_municipio = relatorio_df_etl(df)
+        df_balanca = relatorio_df_etl(df_balanca)
+
+        logger.info("PASSO 1.5: SALVANDO DATAFRAME")
+        relatorio_salva_dataframe(tipo_aba,df_municipio,"teste01.csv")
+        relatorio_salva_dataframe(tipo_aba,df_balanca,"teste02.csv")
         sucesso = True
-        return df_final
+
+        return {
+            "df_municipio":df_municipio, 
+            "df_balanca":df_balanca
+        }
 
     except Exception as e:
         logger.error(f"Erro crítico: {e}", exc_info=True)      
@@ -192,7 +239,7 @@ def main(tipo_aba, flt_ano, flt_sec):
     
     finally:
         if engine:
-            logger.info("PASSO 1.5: DESCONEXÃO DA ENGINE")
+            logger.info("PASSO 1.6: DESCONEXÃO DA ENGINE")
             engine.dispose()
 
         tempo_fim = time.perf_counter()
@@ -214,34 +261,7 @@ if __name__ == "__main__":
     '''MUDAR AQUI'''
     #FILTRO
     tipo_aba= "apenas_ano"
-    flt_ano= 2026
-    flt_sec= None
-    '''MUDAR AQUI'''
-    main(tipo_aba, flt_ano, flt_sec)
-
-    #municipio
-    '''MUDAR AQUI'''
-    #FILTRO
-    tipo_aba= "municipio_ano"
     flt_ano= 2025
-    flt_sec= "Porto Velho"
-    '''MUDAR AQUI'''
-    main(tipo_aba, flt_ano, flt_sec)
-
-    #pais
-    '''MUDAR AQUI'''
-    #FILTRO
-    tipo_aba= "pais_ano"
-    flt_ano= 2024
-    flt_sec= "China"
-    '''MUDAR AQUI'''
-    main(tipo_aba, flt_ano, flt_sec)
-
-    #produto
-    '''MUDAR AQUI'''
-    #FILTRO
-    tipo_aba= "produto_ano"
-    flt_ano= 2023
-    flt_sec= "Soja, mesmo triturada"
+    flt_sec= None
     '''MUDAR AQUI'''
     main(tipo_aba, flt_ano, flt_sec)

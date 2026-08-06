@@ -9,6 +9,8 @@ from tkinter import filedialog
 ###src###
 import relatorio_csv
 
+from relatorio_tipo import RequisicaoRelatorio
+
 #In[2]:
 '''ESCOPO GLOBAL'''
 #CONFIG DO LOG
@@ -271,30 +273,60 @@ def main():
         app.mainloop()
 
         if app.tipo_relatorio:
-            logger.info(
-                f"Relatório Solicitado: {app.tipo_relatorio} | "
-                f"País: {app.pais_selecionado} | Município: {app.municipio_selecionado} | "
-                f"Produto: {app.produto_selecionado} | Ano: {app.ano_selecionado} | "
-                f"Opção: {app.checkbox_valor}"
-            )
-            sucesso = True
-            return (app.tipo_relatorio, app.pais_selecionado, app.municipio_selecionado,
-                    app.produto_selecionado, app.ano_selecionado, app.checkbox_valor)
-        else:
-            cancelado = True
-            return None, None, None, None, None, None
+            #logs de Valores
+            logger.info(f"tipo_relatorio = {app.tipo_relatorio}")
+            logger.info(f"pais = {app.pais_selecionado}")
+            logger.info(f"municipio = {app.municipio_selecionado}")
+            logger.info(f"produto = {app.produto_selecionado}")
+            logger.info(f"ano = {app.ano_selecionado}")
+            
+            if app.tipo_relatorio == "pais_ano":
+
+                return RequisicaoRelatorio(
+                    modo="pais",
+                    ano=app.ano_selecionado,
+                    valor_recorte=app.pais_selecionado,
+                    logo=app.checkbox_valor
+                )
+
+            elif app.tipo_relatorio == "municipio_ano":
+
+                return RequisicaoRelatorio(
+                    modo="municipio",
+                    ano=app.ano_selecionado,
+                    valor_recorte=app.municipio_selecionado,
+                    logo=app.checkbox_valor
+                )
+
+            elif app.tipo_relatorio == "produto_ano":
+
+                return RequisicaoRelatorio(
+                    modo="produto",
+                    ano=app.ano_selecionado,
+                    valor_recorte=app.produto_selecionado,
+                    logo=app.checkbox_valor
+                )
+
+            elif app.tipo_relatorio == "apenas_ano":
+
+                return RequisicaoRelatorio(
+                    modo="ano",
+                    ano=app.ano_selecionado,
+                    logo=app.checkbox_valor
+                )
+
+            return None
 
     except Exception as e:
          logger.error(f"Erro no main(): {e}", exc_info=True)
 
     finally:
+        
         tempo_fim = time.perf_counter()
         tempo_total = tempo_fim - tempo_ini
         logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total}")
         logger.info("--- FIM PROCESSO DE JANELAS ---")
         logger.info("=="*32)
-
-
 
 #In[]:
 if __name__ == "__main__":

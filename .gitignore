@@ -4,7 +4,9 @@
 *.pdf
 *.jpeg
 *.png
+.log
 __pycache__
 Arquivos
 venv
 Logs
+dist

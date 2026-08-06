@@ -291,87 +291,87 @@ def gerar_grafico_barras(df_top10, x_col, y_col, titulo):
     plt.close(fig)
     return buffer_para_image(buf, largura_max=710,altura_max=340)
 
+#In[]:
+def montar_tabela_comparar_ano(story, df):
 
+    df_ano = df['ano'].drop_duplicates().sort_values(ascending=True).tolist()
+    ano_1 = df_ano [0]
+    ano_2 = df_ano [1]
 
+    #TABELAS DE VALOR POR MÊS
+    t_totais = Table(df, colWidths=[150, 150])
+    t_totais.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (1,0), colors.HexColor("#2B6CB0")),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F7FAFC")]),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+    ]))
 
-def montar_tabela_comparar(estilo_celula, estilo_header):
-    """FUNÇÃO DE CRIAÇÃO DE TABELAS DA PAGINA COM DADOS DE QUANTIDADE DE VALOR
-    FOB VALOR EM KG E QUANTIDADE DE PRODUTOS USADO EM:
+    '''
+    ORGANIZAR A TABELA PARA FICAR MAIS FÁCIL DE LER
+    MES 
+    '''
+    df_mes = (
+    df.pivot_table(
+            index=['ordem', 'mes'],
+            columns='ano',
+            values=['valor_fob_exp', 'valor_kg_exp'],
+            aggfunc='sum',
+            fill_value=0
+        )
+        .reset_index()
+    )
 
-    re
-    """
-
-    return [
-        [
-            Paragraph("Mês", estilo_header),
-            Paragraph("Valor 2025 (US$)", estilo_header),
-            Paragraph("Volume 2025 (kg)", estilo_header),  # Corrigido (kg)
-            Paragraph("Valor 2026 (US$)", estilo_header),
-            Paragraph("Volume 2026 (kg)", estilo_header),  # Corrigido (kg)
-            Paragraph("Diferença Valor % (2026 - 2025)", estilo_header),
-            Paragraph("Diferença Volume % (2026 - 2025)", estilo_header),
-        ],
-        [
-            Paragraph("Jan", estilo_celula),
-            Paragraph("151.652.092", estilo_celula),
-            Paragraph("232.117.816", estilo_celula),
-            Paragraph("171.579.239", estilo_celula),
-            Paragraph("131.329.946", estilo_celula),
-            Paragraph("+13,14 %", estilo_celula),  # Corrigido arredondamento
-            Paragraph("-43,42 %", estilo_celula),
-        ],
-        [
-            Paragraph("Fev", estilo_celula),
-            Paragraph("180.949.428", estilo_celula),
-            Paragraph("229.985.383", estilo_celula),
-            Paragraph("257.208.052", estilo_celula),
-            Paragraph("356.868.545", estilo_celula),
-            Paragraph("+42,13 %", estilo_celula),
-            Paragraph("+55,17 %", estilo_celula),
-        ],
-        [
-            Paragraph("Mar", estilo_celula),
-            Paragraph("388.852.196", estilo_celula),
-            Paragraph("745.861.844", estilo_celula),
-            Paragraph("491.726.462", estilo_celula),
-            Paragraph("904.022.737", estilo_celula),
-            Paragraph("+26,46 %", estilo_celula),
-            Paragraph("+21,21 %", estilo_celula),
-        ],
-        [
-            Paragraph("Abr", estilo_celula),
-            Paragraph("416.267.735", estilo_celula),
-            Paragraph("797.050.833", estilo_celula),
-            Paragraph("441.305.912", estilo_celula),
-            Paragraph("731.509.314", estilo_celula),
-            Paragraph("+6,01 %", estilo_celula),
-            Paragraph("-8,22 %", estilo_celula),
-        ],
-        [
-            Paragraph("Mai", estilo_celula),
-            Paragraph("329.659.937", estilo_celula),
-            Paragraph("588.865.053", estilo_celula),
-            Paragraph("353.471.092", estilo_celula),
-            Paragraph("410.834.497", estilo_celula),
-            Paragraph("+7,22 %", estilo_celula),
-            Paragraph("-30,24 %", estilo_celula),
-        ],
-        [
-            Paragraph("Jun", estilo_celula),
-            Paragraph("274.211.607", estilo_celula),
-            Paragraph("385.093.156", estilo_celula),
-            Paragraph("301.158.703", estilo_celula),
-            Paragraph("301.741.383", estilo_celula),
-            Paragraph("+9,82 %", estilo_celula),
-            Paragraph("-21,64 %", estilo_celula),
-        ],
-        [
-            Paragraph("Total", estilo_celula),
-            Paragraph("1.741.592.995", estilo_celula),
-            Paragraph("2.978.974.085", estilo_celula),
-            Paragraph("2.016.449.460", estilo_celula),
-            Paragraph("2.836.306.422", estilo_celula),
-            Paragraph("+15,78 %", estilo_celula),
-            Paragraph("-4,78 %", estilo_celula),
-        ],
+    # Remove o MultiIndex das colunas
+    df_mes.columns = [
+        f'{col[0]}_{col[1]}' if col[1] != '' else col[0]
+        for col in df_mes.columns
     ]
+
+    dados_tabela = [[
+        Paragraph("Mês", estilo_header),
+        Paragraph(f"Valor FOB (US$) - {ano_1}", estilo_header),
+        Paragraph(f"Volume(kg) - {ano_1}", estilo_header),
+        Paragraph(f"Valor FOB (US$) - {ano_2}", estilo_header),
+        Paragraph(f"Volume(kg) - {ano_2}", estilo_header),
+        Paragraph(f"Diferença % Valor FOB (US$): ({ano_2} - {ano_1})", estilo_header),
+        Paragraph(f"Diferença % Voume (kg): ({ano_2} - {ano_1})", estilo_header)
+    ]]
+
+    #MUDANDO NOME DO MÊS
+    for _, row in df_mes.iterrows():
+
+        valor1 = row[f'valor_fob_exp_{ano_1}']
+        valor2 = row[f'valor_fob_exp_{ano_2}']
+
+        kg1 = row[f'valor_kg_exp_{ano_1}']
+        kg2 = row[f'valor_kg_exp_{ano_2}']
+
+        dif_valor = ((valor2 - valor1) / valor1 * 100) if valor1 else 0
+        dif_kg = ((kg2 - kg1) / kg1 * 100) if kg1 else 0
+
+        dados_tabela.append([
+            Paragraph(str(row['mes']), estilo_celula),
+            Paragraph(formatar_br(valor1), estilo_celula),
+            Paragraph(formatar_br(kg1), estilo_celula),
+            Paragraph(formatar_br(valor2), estilo_celula),
+            Paragraph(formatar_br(kg2), estilo_celula),
+            Paragraph(f"{dif_valor:.2f}%", estilo_celula),
+            Paragraph(f"{dif_kg:.2f}%", estilo_celula),
+    ])
+    
+    #CONFIGURAÇÕES DE TABELAS
+    t_mensal = Table(dados_tabela, colWidths=[100, 180, 180])
+    t_mensal.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#2B6CB0")),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#E2E8F0")),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#F7FAFC")]),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+    ]))
+    story.append(t_mensal)
+    story.append(NextPageTemplate('Paisagem'))
+    story.append(PageBreak())

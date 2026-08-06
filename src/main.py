@@ -6,15 +6,13 @@ import time
 from datetime import datetime
 
 #src
+import relatorio_modelo
 import relatorio_janela_main #2
-import relatorio_modelo_ano #4
-import relatorio_modelo_municipio #4
-import relatorio_modelo_pais #4
+import modelo_antingo.relatorio_modelo_ano as relatorio_modelo_ano #4
+import modelo_antingo.relatorio_modelo_municipio as relatorio_modelo_municipio #4
+import modelo_antingo.relatorio_modelo_pais as relatorio_modelo_pais #4
 
-#In[2]:
-'''ESCOPO GLOBAL'''
-#CONFIG DO LOG
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(message)s')
+#In[]:
 logger = logging.getLogger(__name__)
 
 #In[]:
@@ -31,7 +29,7 @@ def setup_master_logging(nome_sistema):
     #ARQUIVO DE LOG    
     arq_log = os.path.join(pasta_log,f"{data_format}_{nome_sistema}_processo_completo.log")
 
-    # formato do log
+    #FORMATO LOG
     log_format = '%(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(message)s'
     logging.basicConfig(
         level=logging.INFO,
@@ -47,44 +45,44 @@ def setup_master_logging(nome_sistema):
 
 #In[]:
 def main():
-    tempo_ini = time.perf_counter()
-    nome_sistema = "relatorio_comex_stat"
-    setup_master_logging(nome_sistema)
+    try:
+        sucesso = False
+        tempo_ini = time.perf_counter()
+        nome_sistema = "relatorio_comex_stat"
+        setup_master_logging(nome_sistema)
 
-    #CRIAR >csv DE CONSULTA
-    #FEITO NO CÓDIGO DO relatorio_Janela_Main()
-    #ABRIR JANELA DE BUSCA
-    tipo_aba,pais, municipio,produto, ano,logo = relatorio_janela_main.main()
+        #CRIAR >csv DE CONSULTA
+        #FEITO NO CÓDIGO DO relatorio_Janela_Main()
+        #ABRIR JANELA DE BUSCA COOLETAR OS DADOS
+        req = relatorio_janela_main.main()
+        logger.info(type(req))
+        logger.info(req)
 
-    #FAZER A BUSCA DE DADOS
-    #CRIAR O MODELO EM .pdf
-    #SALVAR O ARQUIVO
-    if tipo_aba == "apenas_ano":
-        '''PRECISA FAZER O MODELO'''
-        logger.info(f"PASSO 1.2: Gerando Relatório Comercial Rondônia - {ano}")
-        arq_name = f"Relatório Exportação - Rondônia - {ano}"
-        relatorio_modelo_ano.main(tipo_aba,arq_name, ano,logo)
-
-    elif tipo_aba == "municipio_ano":
-        '''PRECISA FAZER O MODELO'''
-        logger.info(f"PASSO 1.2: Gerando Relatório Comercial {municipio} - {ano}")
-        arq_name = f"Relatório Exportação - {municipio} - {ano}"
-        relatorio_modelo_municipio.main(tipo_aba,arq_name, ano,municipio,logo)
+        #CASO NÃO TENHA DADOS
+        if req is None:
+            logger.info("OPERAÇÃO CANCELADA")
+            return
         
-    elif tipo_aba == "pais_ano":
-        logger.info(f"PASSO 1.2: Gerando Relatório Comercial {pais} - {ano}")
-        arq_name = f"Relatório Exportação - {pais} - {ano}"
-        relatorio_modelo_pais.main(tipo_aba,arq_name, ano,pais,logo)
+        #FAZER A BUSCA DE DADOS
+        #CRIAR O MODELO EM .pdf
+        #SALVAR O ARQUIVO
+        relatorio_modelo.main(**req.parametros())
+        sucesso = True
 
-    elif tipo_aba == "produto_ano":
-        '''PRECISA FAZER O MODELO'''
-        logger.info(f"PASSO 1.2: Gerando Relatório Comercial {produto} - {ano}")
-        arq_name = f"Relatório Exportação - {produto} - {ano}"
-        relatorio_modelo_pais.main(tipo_aba,arq_name, ano,produto,logo)
-        
-    tempo_fim = time.perf_counter()
-    tempo_total = tempo_fim - tempo_ini
-    logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
+    except Exception as e:
+        logger.exception(f"Erro durante a execução {e}.",exc_info=True)
+        raise
+
+    finally:
+        if sucesso:
+            logger.info("Programa Executado Com Sucesso!")
+
+        else:
+            logger.info("Programa encerrado devido a Erro de Execução")
+            
+        tempo_fim = time.perf_counter()
+        tempo_total = tempo_fim - tempo_ini
+        logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
 
 #In[]:
 if __name__ == "__main__":

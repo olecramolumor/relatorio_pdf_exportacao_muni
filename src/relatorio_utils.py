@@ -109,39 +109,5 @@ def main():
         logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
 
 #In[]:
-def main2():
-    engine = None
-    sucesso = False
-    tempo_ini = time.perf_counter()
-
-    try:
-        logger.info("=="*32)
-        logger.info("--- INÍCIO PROCESSO DE COLETA DO DATAFRAME ---")
-
-        logger.info("PASSO 1.1: CONFIGURAÇÃO DA ENGINE")
-        config = db_config()
-
-        logger.info("PASSO 1.2: CONEXÃO COM O BANCO DE DADOS")
-        engine = db_conecta(config)
-
-        sucesso = True
-        logger.info("PASSO 1.3: CONEXÃO BEM SUCEDIDA")
-
-        return engine
-
-    except Exception as e:
-        logger.info(f"Erro de execução no main(): {e}")
-        raise
-
-    finally:
-        if engine and not sucesso:
-            engine.dispose()
-            logger.error("DESCONEXÃO FEITA DEVIDO A ERRO")
-
-        tempo_fim = time.perf_counter()
-        tempo_total = tempo_fim - tempo_ini
-        logger.info(f"TEMPO DE EXECUÇÃO: {tempo_total:.4}s")
-
-#In[]:
 if __name__ == "__main__":
     main()
