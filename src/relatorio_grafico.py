@@ -292,8 +292,7 @@ def gerar_grafico_barras(df_top10, x_col, y_col, titulo):
     return buffer_para_image(buf, largura_max=710,altura_max=340)
 
 #In[]:
-def montar_tabela_comparar_ano(story, df):
-
+def montar_tabela_comparar_ano(story,estilo_header,estilo_celula,df):
     df_ano = df['ano'].drop_duplicates().sort_values(ascending=True).tolist()
     ano_1 = df_ano [0]
     ano_2 = df_ano [1]

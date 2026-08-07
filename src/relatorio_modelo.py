@@ -29,13 +29,10 @@ import relatorio_dataframe
 
 #In[2]:
 '''ESCOPO GLOBAL'''
-#CONFIG DO LOG
+    #CONFIG DO LOG
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-dataframes = relatorio_dataframe.main()
-df_municipio = dataframes[0]
-df_balanca = dataframes[1]
 
 #In[3]:
 '''
@@ -259,7 +256,6 @@ def desenhar_cabecalho_rodape(valor_recorte, ano, canvas, doc, exibir_imagens=Tr
     canvas.setStrokeColor(colors.HexColor("#CBD5E1"))
     canvas.setLineWidth(1)
     canvas.line(54, 65, largura - 54, 65)
-
     centro_x = largura / 2
 
     #FONTE
@@ -298,6 +294,90 @@ def desenhar_cabecalho_rodape(valor_recorte, ano, canvas, doc, exibir_imagens=Tr
     canvas.restoreState()
 
 #In[]:
+'''
+ESSA SEÇÃO É PARA MONTAR AS INTRODUÇÕES ANTES DE CADA TEMA
+É BOM REVISAR O TEXTO E VERIFICAR TUDO CERTINHO
+'''
+def montar_introducao_rel(story,styles):
+    try:
+        story.append(Paragraph("Visão Geral dos dados de Comércio Exterior Municipal - Comex Stat Municipal", styles['TituloTopico']))
+        story.append(Paragraph(
+            "O Comex Stat Municipal é a ferramenta oficial do Governo Federal para a consulta de dados detalhados do comércio exterior brasileiro em nível municipal."
+            "A plataforma permite analisar com precisão o desempenho de exportações e importações de cada cidade, destacando:",
+            styles['TextoCorpo']
+        ))
+
+        itens_lista01 = [
+            "<b>Balança Comercial Local:</b> Saldo e volume de trocas comerciais da cidade;",
+            "<b>Principais Produtos:</b> Os itens mais exportados e importados pelo município;",
+            "<b>Parceiros Internacionais:</b> Os países de destino e origem das mercadorias."
+        ]
+
+        for item in itens_lista01:
+            story.append(Paragraph(f"<bullet>&bull;</bullet>{item}", styles['TextoBullet']))
+
+        story.append(Paragraph(
+            "Trata-se de uma fonte pública, gratuita e atualizada mensalmente, essencial para a inteligência de mercado, atração de investimentos e planejamento de políticas"
+            " públicas locais. O foco deste relatório concentra-se nas exportações do Estado de Rondônia e seus municípios.",
+            styles['TextoCorpo']
+        ))
+
+    except Exception as e:
+        logger.error(f"ERRO CRÍTICO EM montar_introducao(): {e}",exc_info=True)
+
+def montar_intro_tema01(story, styles):
+    try:
+        story.append(Paragraph("Paronama Geral de Importação - Rondônia", styles['TituloTopico']))
+        story.append(Paragraph(
+            "Enquanto as exportações de Rondônia são impulsionadas pelo agronegócio,"
+            " o perfil das importações reflete diretamente a necessidade de suprir a cadeia produtiva local."
+            " O estado importa prioritariamente insumos agrícolas, máquinas, equipamentos e combustíveis,"
+            " essenciais para sustentar o crescimento da produção do agro, a infraestrutura e o setor industrial rondoniense.",
+            styles['TextoCorpo']
+        ))
+
+        story.append(Paragraph("Principais Mercados de Rondônia", styles['TituloTopico']))
+        itens_lista03 = [
+            "<b>Adubos e Fertilizantes:</b> rincipal item da pauta de importação (compostos nitrogenados, fosfatados e potássicos), cruciais para a nutrição do solo e o alto rendimento das safras de soja e milho.",
+            "<b>Máquinas e Equipamentos Agrícolas:</b> Tratores, colheitadeiras e peças de reposição para modernização do parque fabril e do campo.",
+            "<b>Combustíveis e Óleos Minerais:</b> Insumos para abastecimento da frota logística e operações de transporte regional.",
+            "<b>Produtos Químicos e Defensivos:</b> Defensivos agrícolas e insumos para a indústria de transformação.",
+            "<b>Bens de Consumo e Eletroeletrônicos:</b> Itens diversos para abastecimento do comércio varejista local."
+        ]
+
+        for item in itens_lista03:
+            story.append(Paragraph(f"<bullet>&bull;</bullet>{item}", styles['TextoBullet']))
+
+    except Exception as e:
+        logger.error(f"ERRO CRÍTICO EM montar_introducao(): {e}",exc_info=True)
+
+def montar_intro_tema02(story, styles):
+    try:
+        story.append(Paragraph("Paronama Geral de Importação - Rondônia", styles['TituloTopico']))
+        story.append(Paragraph(
+            "Enquanto as exportações de Rondônia são impulsionadas pelo agronegócio,"
+            " o perfil das importações reflete diretamente a necessidade de suprir a cadeia produtiva local."
+            " O estado importa prioritariamente insumos agrícolas, máquinas, equipamentos e combustíveis,"
+            " essenciais para sustentar o crescimento da produção do agro, a infraestrutura e o setor industrial rondoniense.",
+            styles['TextoCorpo']
+        ))
+
+        story.append(Paragraph("Principais Mercados de Rondônia", styles['TituloTopico']))
+        itens_lista03 = [
+            "<b>Adubos e Fertilizantes:</b> rincipal item da pauta de importação (compostos nitrogenados, fosfatados e potássicos), cruciais para a nutrição do solo e o alto rendimento das safras de soja e milho.",
+            "<b>Máquinas e Equipamentos Agrícolas:</b> Tratores, colheitadeiras e peças de reposição para modernização do parque fabril e do campo.",
+            "<b>Combustíveis e Óleos Minerais:</b> Insumos para abastecimento da frota logística e operações de transporte regional.",
+            "<b>Produtos Químicos e Defensivos:</b> Defensivos agrícolas e insumos para a indústria de transformação.",
+            "<b>Bens de Consumo e Eletroeletrônicos:</b> Itens diversos para abastecimento do comércio varejista local."
+        ]
+
+        for item in itens_lista03:
+            story.append(Paragraph(f"<bullet>&bull;</bullet>{item}", styles['TextoBullet']))
+
+    except Exception as e:
+        logger.error(f"ERRO CRÍTICO EM montar_introducao(): {e}",exc_info=True)
+    
+#In[]:
 def construir_secao_fluxo(story, df_fluxo, tipo_fluxo, styles, extra_breakdowns):
     """
     extra_breakdowns: lista de colunas (ex.: ["produto", "municipio"]) que
@@ -323,7 +403,6 @@ def construir_secao_fluxo(story, df_fluxo, tipo_fluxo, styles, extra_breakdowns)
     gfs.montar_tabela_mes(story, dados_totais, df_fluxo, tipo_fluxo, estilo_header, estilo_celula)
 
     """ ----- PÁGINAS SEGUINTES: TOP 10 POR COLUNA ----- """
-    total = len(extra_breakdowns)
     for i, coluna in enumerate(extra_breakdowns):
         rotulo_plural = LABELS_PLURAL.get(coluna, coluna.capitalize())
         story.append(Paragraph(f"Análise de {tipo_fluxo} - Top 10 {rotulo_plural}", styles['TituloTopico']))
@@ -332,14 +411,9 @@ def construir_secao_fluxo(story, df_fluxo, tipo_fluxo, styles, extra_breakdowns)
         img_top = gfs.gerar_grafico_barras(df_top, coluna, 'valor_fob', f"Top 10 {rotulo_plural} por Valor FOB - {tipo_fluxo}")
         story.append(img_top)
 
-        eh_ultima = (i == total - 1)
-        if eh_ultima:
-            story.append(NextPageTemplate("Retrato"))
-        story.append(PageBreak())
-
 #In[]:
-def montar_bloco_comparacao(story, styles,df, flt_ano):
-    try:
+def montar_bloco_comparacao(story, styles, df, flt_ano):
+    try:        
         estilo_celula = ParagraphStyle('Cel', parent=styles['Normal'], fontSize=8, leading=10, alignment=TA_CENTER)
         estilo_header = ParagraphStyle('Head', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', textColor=colors.white, alignment=TA_CENTER)
 
@@ -350,29 +424,30 @@ def montar_bloco_comparacao(story, styles,df, flt_ano):
             ano_comparacao = flt_ano
 
         story.append(Paragraph(f"Comparação Valores Gerais de Exportação e Importação {ano_comparacao} X {ano_atual}", styles['TituloTopico']))
-        gfs.montar_tabela_comparar_ano(story,df)
+        gfs.montar_tabela_comparar_ano(story,estilo_header,estilo_celula,df)
 
     except Exception as e:
             logger.info(f"ERRO NA GERAÇÃO DA COMPARAÇÃO: {e}", exc_info=True)
     
-
 #In[5]:
-def gerar_relatorio(nome_arquivo, df_exp, df_imp, modo, valor_recorte, ano, logo):
+def gerar_relatorio(nome_arquivo, df_exp, df_imp, df_balanca, modo, valor_recorte, ano, logo):
     try:
         config = MODOS[modo]
-
         caminho_arquivo = relatorio_janela_main.janela_salvar(nome_arquivo)
 
         if not caminho_arquivo:
             logger.info("Geração de PDF cancelada pelo usuário.")
             return
 
+        #DEFININDO MARGEM DO ARQUIVO
         margem_esq, margem_dir = 54, 54
         margem_topo, margem_base = 98, 80
 
+        #DEFININDO A FOLHA
         tam_retrato = A4
         tam_paisagem = landscape(A4)
 
+        #ESTILO EM RETRATO
         frame_retrato = Frame(
             margem_esq, margem_base,
             tam_retrato[0] - margem_esq - margem_dir,
@@ -380,6 +455,7 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, modo, valor_recorte, ano, logo
             id='frame_retrato'
         )
 
+        #ESTILO EM PAISAGEM
         frame_paisagem = Frame(
             margem_esq, margem_base,
             tam_paisagem[0] - margem_esq - margem_dir,
@@ -390,22 +466,29 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, modo, valor_recorte, ano, logo
         #CRIANDO CAMINHO PARA IMAGENS
         pasta_atual = os.getcwd()
         pasta_aux = os.path.join(pasta_atual, "Auxiliar")
+
+        #SETANDO OS NOMES DA IMAGENS
         arq_cam = []
         imagens = [
             "05.png",
             "04.png",
         ]
 
+        #CRIANDO O CAMINHO DAS IMAGENS
         for img in imagens:
             arq_name = os.path.join(pasta_aux, img)
             arq_cam.append(arq_name)
+
+        #CRIANDO O RODAPÉ
         cabecalho_e_rodape_dados = partial(desenhar_cabecalho_rodape, valor_recorte, ano, exibir_imagens=logo, caminhos_imagens=arq_cam)
 
+        #LOCAL DO SALVAMENTO DO ARQUIVO
         doc = BaseDocTemplate(
             caminho_arquivo,
             pagesize=tam_retrato,
         )
 
+        #CRIANDO O TIPO DE PÁGINAS
         doc.addPageTemplates([
             PageTemplate(id='Retrato', frames=[frame_retrato], pagesize=tam_retrato, onPage=cabecalho_e_rodape_dados),
             PageTemplate(id='Paisagem', frames=[frame_paisagem], pagesize=tam_paisagem, onPage=cabecalho_e_rodape_dados),
@@ -413,7 +496,7 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, modo, valor_recorte, ano, logo
 
         styles = getSampleStyleSheet()
 
-        '''CUSTOMIZAÇÃO DE ESTILO PARA O CORPO'''
+        '''CUSTOMIZAÇÃO DE ESTILOS PARA O CORPO DO TEXTO'''
         #TITULO
         styles.add(ParagraphStyle(
             'TituloTopico',
@@ -440,6 +523,7 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, modo, valor_recorte, ano, logo
             keepWithNext=True
         ))
 
+        #BULLETS
         styles.add(ParagraphStyle(
             'TextoBullet',
             parent=styles['Normal'],
@@ -456,90 +540,28 @@ def gerar_relatorio(nome_arquivo, df_exp, df_imp, modo, valor_recorte, ano, logo
         ))
 
         '''APRESENTAÇÃO DO TEXTO'''
+        #CRIAR SEÇÃO PARA A HISTÓRIA/TEXTO
         story = []
-        story.append(Paragraph("Visão Geral dos dados de Comércio Exterior Municipal - Comex Stat Municipal", styles['TituloTopico']))
-        story.append(Paragraph(
-            "O Comex Stat Municipal é a ferramenta oficial do Governo Federal para a consulta de dados detalhados do comércio exterior brasileiro em nível municipal."
-            "A plataforma permite analisar com precisão o desempenho de exportações e importações de cada cidade, destacando:",
-            styles['TextoCorpo']
-        ))
 
-        itens_lista01 = [
-            "<b>Balança Comercial Local:</b> Saldo e volume de trocas comerciais da cidade;",
-            "<b>Principais Produtos:</b> Os itens mais exportados e importados pelo município;",
-            "<b>Parceiros Internacionais:</b> Os países de destino e origem das mercadorias."
-        ]
-
-        for item in itens_lista01:
-            story.append(Paragraph(f"<bullet>&bull;</bullet>{item}", styles['TextoBullet']))
-
-        story.append(Paragraph(
-            "Trata-se de uma fonte pública, gratuita e atualizada mensalmente, essencial para a inteligência de mercado, atração de investimentos e planejamento de políticas"
-            " públicas locais. O foco deste relatório concentra-se nas exportações do Estado de Rondônia e seus municípios.",
-            styles['TextoCorpo']
-        ))
-
+        #CRIAR SEÇÃO DE INTRODUÇÃO DO RELATÓRIO
+        montar_introducao_rel(story,styles)
         story.append(PageBreak())
 
-        '''INTRODUÇÃO EXPORTAÇÃO'''
-        story.append(Paragraph("Paronama Geral de Exportação - Rondônia", styles['TituloTopico']))
-        story.append(Paragraph(
-            "Rondônia destaca-se como um dos principais motores do comércio exterior da Região Norte do Brasil."
-            " Com uma economia baseada no agronegócio de alta eficiência e no aproveitamento sustentável de seus recursos,"
-            " o estado mantém uma balança comercial fortemente superavitária,"
-            " figurando como um fornecedor estratégico de alimentos e matérias-primas para o mercado global.",
-            styles['TextoCorpo']
-        ))
-
-        story.append(Paragraph("Principais Mercados de Rondônia", styles['TituloTopico']))
-        itens_lista02 = [
-            "<b>Complexo Soja:</b> Principal item da pauta (grãos e farelo), impulsionado pela alta produtividade das lavouras do cone sul do estado.",
-            "<b>Carne Bovina:</b> Destaque para os cortes congelados e desossados, sustentados pelo status sanitário do estado como área livre de febre aftosa sem vacinação.",
-            "<b>Madeira e Derivados:</b> Produtos de alto valor agregado originários de manejo florestal sustentável e concessionárias locais.",
-            "<b>Café (Coffea canephora/Robusta/ Robusta Amazônico):</b> Crescente inserção global dos cafés finos e sustentáveis da Amazônia.",
-            "<b>Outros Destaques:</b> Cacau, peixes de água doce (como o tambaqui) e milho."
-        ]
-
-        for item in itens_lista02:
-            story.append(Paragraph(f"<bullet>&bull;</bullet>{item}", styles['TextoBullet']))
-
+        #SEÇÃO DE EXPORTAÇÃO
+        montar_intro_tema01(story,styles)
         story.append(PageBreak())
-
-        '''SEÇÃO DE EXPORTAÇÃO'''
         construir_secao_fluxo(story, df_exp, "Exportação", styles, config["extra_breakdowns"])
-
-        '''INTRODUÇÃO IMPORTAÇÃO'''
-        story.append(Paragraph("Paronama Geral de Importação - Rondônia", styles['TituloTopico']))
-        story.append(Paragraph(
-            "Enquanto as exportações de Rondônia são impulsionadas pelo agronegócio,"
-            " o perfil das importações reflete diretamente a necessidade de suprir a cadeia produtiva local."
-            " O estado importa prioritariamente insumos agrícolas, máquinas, equipamentos e combustíveis,"
-            " essenciais para sustentar o crescimento da produção do agro, a infraestrutura e o setor industrial rondoniense.",
-            styles['TextoCorpo']
-        ))
-
-        story.append(Paragraph("Principais Mercados de Rondônia", styles['TituloTopico']))
-        itens_lista03 = [
-            "<b>Adubos e Fertilizantes:</b> rincipal item da pauta de importação (compostos nitrogenados, fosfatados e potássicos), cruciais para a nutrição do solo e o alto rendimento das safras de soja e milho.",
-            "<b>Máquinas e Equipamentos Agrícolas:</b> Tratores, colheitadeiras e peças de reposição para modernização do parque fabril e do campo.",
-            "<b>Combustíveis e Óleos Minerais:</b> Insumos para abastecimento da frota logística e operações de transporte regional.",
-            "<b>Produtos Químicos e Defensivos:</b> Defensivos agrícolas e insumos para a indústria de transformação.",
-            "<b>Bens de Consumo e Eletroeletrônicos:</b> Itens diversos para abastecimento do comércio varejista local."
-        ]
-
-        for item in itens_lista03:
-            story.append(Paragraph(f"<bullet>&bull;</bullet>{item}", styles['TextoBullet']))
-
+        story.append(NextPageTemplate("Retrato"))
         story.append(PageBreak())
 
-        '''SEÇÃO DE IMPORTAÇÃO'''
+        #SEÇÃO DE IMPORTAÇÃO
+        montar_intro_tema02
         construir_secao_fluxo(story, df_imp, "Importação", styles, config["extra_breakdowns"])
 
         '''BLOCO EXTRA (SOMENTE MODO "ano")'''
-        if config.get("comparacao"):
-            montar_bloco_comparacao(story, styles)
-
-        montar_bloco_comparacao(story, styles,df_balanca, ano)
+        '''if config.get("comparacao"):
+            story.append(PageBreak())
+            montar_bloco_comparacao(story,styles,df_balanca,ano)'''
 
         if story and isinstance(story[-1], PageBreak):
             story.pop()
@@ -569,11 +591,18 @@ def main(modo, nome_arquivo, ano, valor_recorte=None, logo=True):
     tempo_ini = time.perf_counter()
     sucesso = False
     try:
-        tipo_aba = config["tipo_aba"]    
-        df_exp = dataframe_exportacao(df_municipio)
-        df_imp = dataframe_importacao(df_municipio)
+        #CRIANDO DATAFRAME DE DADOS COLETADOS
+        tipo_aba = config["tipo_aba"]
+        dataframes = relatorio_dataframe.main(tipo_aba,ano,valor_recorte)
+        df_dados = dataframes['df_dados']
+        df_balanca = dataframes['df_balanca']
 
-        gerar_relatorio(nome_arquivo, df_exp, df_imp, modo, valor_recorte, ano, logo)
+        #CRIANDO DE DATAFRAME DE EXPORTAÇÃO E IMPORTAÇÃO
+        df_exp = dataframe_exportacao(df_dados)
+        df_imp = dataframe_importacao(df_dados)
+
+        #GERANDO O RELATÓRIO
+        gerar_relatorio(nome_arquivo, df_exp, df_imp, df_balanca, modo, valor_recorte, ano, logo)
         sucesso = True
 
     except Exception as e:
@@ -591,12 +620,12 @@ def main(modo, nome_arquivo, ano, valor_recorte=None, logo=True):
 #In[6]:
 if __name__ == "__main__":
     logos = True, False
-
-    # ---- Exemplo: relatório por país ----
     ano = 2025
-    pais = "Bonaire, Saint Eustatius e Saba"
-    nome_arquivo = f"Teste XX - {pais} - {logos[1]}"
-    main("pais", nome_arquivo, ano, valor_recorte=pais, logo=logos[1])
+    
+    # ---- Exemplo: relatório por país ----
+    #pais = "Bonaire, Saint Eustatius e Saba"
+    #nome_arquivo = f"Teste XX - {pais} - {logos[1]}"
+    #main("pais", nome_arquivo, ano, valor_recorte=pais, logo=logos[1])
 
     # ---- Exemplo: relatório por município ----
     # muni = "Porto Velho"
@@ -609,5 +638,5 @@ if __name__ == "__main__":
     # main("produto", nome_arquivo, ano, valor_recorte=produto, logo=logos[1])
 
     # ---- Exemplo: relatório apenas por ano (sem recorte) ----
-    # nome_arquivo = f"Teste XX - ano - {logos[1]}"
-    # main("ano", nome_arquivo, ano, logo=logos[1])
+    nome_arquivo = f"Teste XX - ano - {logos[1]}"
+    main("ano", nome_arquivo, ano, logo=logos[1])

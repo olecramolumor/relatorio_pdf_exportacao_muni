@@ -182,7 +182,7 @@ def relatorio_salva_dataframe(tipo_aba,df,nome_arq):
 
 #In[7]:
 #FUNÇÃO main()
-def main(tipo_aba, flt_ano, flt_sec):
+def main(tipo_aba, ano, valor_recorte):
     try:
         engine = None
         sucesso = False
@@ -201,35 +201,35 @@ def main(tipo_aba, flt_ano, flt_sec):
         logger.info("PASSO 1.2 - INICIANDO COLETA DE DADOS DO DATAFRAME PADRÃO")
         if tipo_aba == "apenas_ano":
             logger.info("PASSO 1.2.1: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_ano(engine,tabela1, flt_ano)
+            df = relatorio_select_ano(engine,tabela1, ano)
 
         elif tipo_aba == "municipio_ano":
             logger.info("PASSO 1.2.2: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_muni(engine,tabela1, flt_ano, flt_sec)
+            df = relatorio_select_muni(engine,tabela1, ano, valor_recorte)
 
         elif tipo_aba == "pais_ano":
             logger.info("PASSO 1.2.3: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_pais(engine,tabela1, flt_ano, flt_sec)
+            df = relatorio_select_pais(engine,tabela1, ano, valor_recorte)
 
         elif tipo_aba == "produto_ano":
             logger.info("PASSO 1.2.4: FAZENDO A QUERY DE DADOS")
-            df = relatorio_select_produto(engine,tabela1, flt_ano, flt_sec)        
+            df = relatorio_select_produto(engine,tabela1, ano, valor_recorte)        
 
         logger.info("PASSO 1.3 - INICIANDO COLETA DE DADOS DO DATAFRAME BALANÇA COMERCIAL")
         logger.info("PASSO 1.3.1: FAZENDO A QUERY DE DADOS")
-        df_balanca = relatorio_select_balanca_comercial(engine,tabela2,flt_ano)
+        df_balanca = relatorio_select_balanca_comercial(engine,tabela2,ano)
 
         logger.info("PASSO 1.4: ALTERANDO DATAFRAME")
-        df_municipio = relatorio_df_etl(df)
+        df_dados= relatorio_df_etl(df)
         df_balanca = relatorio_df_etl(df_balanca)
 
         logger.info("PASSO 1.5: SALVANDO DATAFRAME")
-        relatorio_salva_dataframe(tipo_aba,df_municipio,"teste01.csv")
+        relatorio_salva_dataframe(tipo_aba,df_dados,"teste01.csv")
         relatorio_salva_dataframe(tipo_aba,df_balanca,"teste02.csv")
         sucesso = True
 
         return {
-            "df_municipio":df_municipio, 
+            "df_dados":df_dados, 
             "df_balanca":df_balanca
         }
 
